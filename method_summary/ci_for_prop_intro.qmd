@@ -92,4 +92,28 @@ Several asymptotic methods offer a continuity adjustment, which aims to emulate 
 
 Although theoretically possible for any contrast, the mid-P method is only implemented in SAS for CIs for the single proportion and the odds ratio contrast.
 
+# Packages for R
+
+Here we provide an overview of the packages containing methods for the different analysis types. Further detail of the specific methods offered and agreement between packages can be found on the relevant pages.
+
+**The {cardx} package** is an extension of the {cards} package, providing additional functions to create Analysis Results Data Objects (ARDs)^1^. It was developed as part of {NEST} and pharmaverse. This package requires the binary endpoint to be a logical (TRUE/FALSE) vector or a numeric/integer coded as (0, 1) with 1 (TRUE) being the success you want to calculate the confidence interval for.
+
+If calculating the CI for a difference in proportions, the package requires both the response and the treatment variable to be numeric/integer coded as (0, 1) (or logical vector).
+
+Methods are included for one-sample proportions and limited options for 2 independent samples, but {cardx} currently does not have a method for 2 matched proportions.
+
+**The {PropCIs} package** produces a selection of CIs for single proportion, and estimation of all contrasts for independent proportions and paired proportions (except paired RR). The {PropsCIs} package generally requires just the number of events (numerator number of successes) & total number of subjects (denominator) as an input dataset.
+
+**The {ratesci} package** contains functions to produce a variety of CIs for a single binomial proportion or Poisson event rate, and all contrasts of independent proportions/rates or paired proportions. It has a particular emphasis on classes of methods that can be applied across different analysis types, in particular the Asymptotic Score methods (with or without skewness correction) which come with naturally consistent hypothesis tests (for association or non-inferiority), and also caters for analysis of stratified datasets. The full range of MOVER methods is also included.
+
+**The {Hmisc} package** contains the binconf() function, which produces CIs for a single proportion only.
+
+**The {RBesT} package** contains a function (BinaryExactCI()) to produce the Clopper-Pearson CI only.
+
+**The {ExactCIdiff} package** produces 'exact' CIs for RD for two independent or paired proportions.
+
+**The {DescTools} package** has functions which produce CIs for single proportions and all contrasts of two proportions (independent samples only).
+
+**The {presize} package** has a function prec_prop() which also calculates CIs for 2 independent samples using the Wilson, Agresti-Coull, Exact or Wald approaches. The package is not described in further detail here since in most cases **{DescTools}** will be able to compute what is needed. However, it's mentioned due to other functionality it has available such as sample size and precision calculations for AUC, correlations, cronbach's alpha, intraclass correlation, Cohen's kappa, likelihood ratios, means, mean differences, odds ratios, rates, rate ratios, risk differences and risk ratios.
+
 ## References
