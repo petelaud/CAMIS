@@ -3944,6 +3944,21 @@
       ],
       "Hash": "f146a5bfc94db048309712535d4d0aee"
     },
+    "ratesci": {
+      "Package": "ratesci",
+      "Version": "1.0.0.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "petelaud",
+      "RemoteRepo": "ratesci",
+      "RemoteRef": "master",
+      "RemoteSha": "0f1153de43a72470723ec107e5f95f48f34beb1c",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "7adefd62cdfe29e53b073128c5e9f63d"
+    },
     "rbibutils": {
       "Package": "rbibutils",
       "Version": "2.4.1",
