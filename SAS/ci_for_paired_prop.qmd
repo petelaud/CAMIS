@@ -131,13 +131,13 @@ $D + sqrt((p_2-l_2)^2-2\phi(p_2-l_2)(u_1-p_1)+(u_1-p_1)^2 )$
 
 First using the Wilson Method equations for each of the individual single samples 1 and 2.
 
-|          | Active     | Placebo    |
-|----------|------------|------------|
-| a        | 73.842     | 55.842     |
-| b        | 13.728     | 11.974     |
-| c        | 99.683     | 99.683     |
-| Lower CI | 0.603 = L1 | 0.440 = L2 |
-| Upper CI | 0.878 = U1 | 0.680 = U2 |
+|          | Active        | Placebo       |
+|----------|---------------|---------------|
+| a        | 73.842        | 55.842        |
+| b        | 11.974        | 13.728        |
+| c        | 99.683        | 99.683        |
+| Lower CI | 0.621 = $l_1$ | 0.422 = $l_2$ |
+| Upper CI | 0.861 = $u_1$ | 0.698 = $u_2$ |
 
 $A=(r+s)(t+u)(r+t)(s+u)$ = 9450000
 
@@ -153,7 +153,7 @@ Lower CI = $D - sqrt((p_1-l_1)^2+(u_2-p_2)^2 )$ = 0.196 - sqrt \[ (0.761-0.603)\
 
 Upper CI = $D + sqrt((p_2-l_2)^2+(u_1-p_1)^2 )$ = 0.196 + sqrt \[ (0.565-0.440)\^2 + (0.878-0.761) \^2 \]
 
-CI= 0.00032 to 0.367389
+CI= 0.002602 to 0.369943
 
 ## Continuity Adjusted Methods
 
