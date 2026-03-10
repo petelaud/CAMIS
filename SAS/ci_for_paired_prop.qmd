@@ -163,19 +163,12 @@ CI= 0.002602 to 0.369943
 
 \[TBC\]
 
-## Example Code using PROC FREQ
 
-Unfortunately, SAS does not have a procedure which outputs the confidence intervals for matched proportions. A macro is available at \[\] which provides the asymptotic score method by Tango, and a skewness corrected version (paper under review).
 
-Instead it calculates the risk difference = (r / (r+s) - t / (t+u) )
 
-Which in the example above is: 20/ (20+15) - 6 / (6+5) = 0.0296
 
-This is more applicable when you have exposed / non-exposed groups looking at who has experienced the outcome. SAS Proc Freq has 3 methods for analysis of paired data using a Common risk difference.
 
-The default method is Mantel-Haenszel confidence limits. SAS can also Score (Miettinen-Nurminen) CIs and Stratified Newcombe CIs (constructed from stratified Wilson Score CIs). See [here](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details63.htm) for equations.
 
-As you can see below, this is not a CI for difference in proportions of 0.196, it is a CI for the risk difference of 0.0260. So must be interpreted with much consideration.
 
 
 
