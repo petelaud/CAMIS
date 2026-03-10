@@ -177,34 +177,8 @@ The default method is Mantel-Haenszel confidence limits. SAS can also Score (Mie
 
 As you can see below, this is not a CI for difference in proportions of 0.196, it is a CI for the risk difference of 0.0260. So must be interpreted with much consideration.
 
-```{sas}
-data dat_used;
-    input ID$ PBO ACT @@;
-    datalines;
-  001 0 0   002 0 0   003 0 0   004 0 0   005 0 0
-  006 1 0   007 1 0   008 1 0   009 1 0   010 1 0
-  011 1 0   012 0 1   013 0 1   014 0 1   015 0 1
-  016 0 1   017 0 1   018 0 1   019 0 1   020 0 1
-  021 0 1   022 0 1   023 0 1   024 0 1   025 0 1
-  026 0 1   027 1 1   028 1 1   029 1 1   030 1 1
-  031 1 1   032 1 1   033 1 1   034 1 1   035 1 1
-  036 1 1   037 1 1   038 1 1   039 1 1   040 1 1
-  041 1 1   042 1 1   043 1 1   044 1 1   045 1 1
-  046 1 1
-    ;
-run;
 
-proc freq data=dat_used; 
-    table ACT*PBO/commonriskdiff(cl=MH); 
-run;
-```
 
-```{r}
-#| echo: false
-#| fig-align: center
-#| out-width: 50%
-knitr::include_graphics("../images/ci_for_prop/riskdiff_matched.png")
-```
 
 ## Reference
 
@@ -229,5 +203,39 @@ knitr::include_graphics("../images/ci_for_prop/riskdiff_matched.png")
 10. Blaker, H. (2000). Confidence curves and improved exact confidence intervals for discrete distributions, Canadian Journal of Statistics 28 (4), 783--798
 
 11. Klaschka, J. and Reiczigel, J. (2021). "On matching confidence intervals and tests for some discrete distributions: Methodological and computational aspects," Computational Statistics, 36, 1775--1790.
+```{sas}
+data dat_used;
+	do id = 1 to 20;
+      trt = 'ACT'; resp = 'Yes'; output;
+      trt = 'PBO'; resp = 'Yes'; output;
+  end;
+	do id = 21 to 35;
+      trt = 'ACT'; resp = 'Yes'; output;
+      trt = 'PBO'; resp = 'No'; output;
+  end;
+	do id = 36 to 41;
+      trt = 'ACT'; resp = 'No'; output;
+      trt = 'PBO'; resp = 'Yes'; output;
+  end;
+	do id = 42 to 46;
+      trt = 'ACT'; resp = 'No'; output;
+      trt = 'PBO'; resp = 'No'; output;
+  end;
+run;
+
+proc sort data=dat_used;
+  by trt descending resp;
+run;
+
+proc freq data=dat_used order=data; 
+  table id*trt*resp / commonriskdiff noprint; 
+run;
+```
 
 12. <https://www.lexjansen.com/wuss/2016/127_Final_Paper_PDF.pdf>
+```{r}
+#| echo: false
+#| fig-align: center
+#| out-width: 50%
+ knitr::include_graphics("../images/ci_for_prop/riskdiff_stratified.png")
+```
