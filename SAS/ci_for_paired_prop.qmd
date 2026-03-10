@@ -6,10 +6,11 @@ csl: nature.csl
 
 ## Introduction
 
-\[See separate page for general introductory information on confidence intervals for proportions.\]
+This page covers confidence intervals for comparisons of two paired proportions in SAS. Note that PROC FREQ will give a McNemar test for such an analysis (via the `AGREE` option), but with no corresponding confidence interval. Some methods are described below to facilitate computing them programmatically. A SAS macro (`%PAIRBINCI`) can be downloaded from <https://github.com/petelaud/ratesci-sas> to obtain the Asymptotic Score methods, which have superior coverage properties.
 
+Analysis may be based on the risk difference (RD) contrast $\theta_{RD} = p_1 - p_2$ or relative risk (RR) $\theta_{RR} = p_1 / p_2$. In the context of paired data, and of particular interest for case-control studies, the odds ratio (OR) is estimated conditional on the number of discordant pairs, calculated as $\theta_{OR} = p_{12} / p_{21}$, resulting in confidence intervals that are simple transformations of a CI for a single proportion.
 
-## Methods for Calculating Confidence Intervals for Proportion Difference from matched pairs
+See the [summary page](../method_summary/ci_for_prop_intro.html) for general introductory information on confidence intervals for proportions, including the principles underlying the most common methods.
 
 You may experience paired data in any of the following types of situation:
 
@@ -21,7 +22,7 @@ You may experience paired data in any of the following types of situation:
 
 In all these cases, the calculated proportions for the 2 groups are not independent.
 
-Using a cross over study as our example, a 2 x 2 table can be formed as follows:
+Using a cross-over study as our example, a 2 x 2 table can be formed as follows:
 
 +-----------------------+---------------+---------------+---------------+
 |                       | Placebo\      | Placebo\      | Total         |
@@ -34,24 +35,47 @@ Using a cross over study as our example, a 2 x 2 table can be formed as follows:
 | Total                 | r+t           | s+u           | N = r+s+t+u   |
 +-----------------------+---------------+---------------+---------------+
 
+The table below indicates the proportions that are estimated from the data (note the difference in structure compared to the usual 2x2 table for independent proportions).
+
++-----------------------+---------------+---------------+---------------+
+|                       | Placebo\      | Placebo\      | Total         |
+|                       | Response= Yes | Response = No |               |
++=======================+===============+===============+===============+
+| Active Response = Yes | $p_{11}$      | $p_{12}$      | $p_1$         |
++-----------------------+---------------+---------------+---------------+
+| Active Response = No  | $p_{21}$      | $p_{22}$      | $(1-p_1)$     |
++-----------------------+---------------+---------------+---------------+
+| Total                 | $p_2$         | $(1-p_2)$     |               |
++-----------------------+---------------+---------------+---------------+
+
 The proportions of subjects responding on each treatment are:
 
-Active: $\hat p_1 = (r+s)/n$ and Placebo: $\hat p_2= (r+t)/n$
+Active: $\hat p_1 = (r+s)/N$ and Placebo: $\hat p_2= (r+t)/N$
 
-Difference between the proportions for each treatment are: $D=p1-p2=(s-t)/n$
+The estimated difference between the proportions for each treatment is: $D=\hat p_1 - \hat p_2 = (s-t)/N$
 
-Suppose :
+The estimated relative risk is $(r+s)/(r+t)$.
 
-+-----------------------+---------------+---------------+------------------+
-|                       | Placebo\      | Placebo\      | Total            |
-|                       | Response= Yes | Response = No |                  |
-+=======================+===============+===============+==================+
-| Active Response = Yes | r = 20        | s = 15        | r+s = 35         |
-+-----------------------+---------------+---------------+------------------+
-| Active Response = No  | t = 6         | u = 5         | t+u = 11         |
-+-----------------------+---------------+---------------+------------------+
-| Total                 | r+t = 26      | s+u = 20      | N = r+s+t+u = 46 |
-+-----------------------+---------------+---------------+------------------+
+The estimated conditional odds ratio is $s/t$.
+
+## Data used
+
+Worked examples below use the following artificial dataset:
+
++-----------------------+---------------+---------------+---------------+
+|                       | Placebo\      | Placebo\      | Total         |
+|                       | Response= Yes | Response = No |               |
++=======================+===============+===============+===============+
+| Active Response = Yes | r = 20        | s = 15        | r+s = 35      |
++-----------------------+---------------+---------------+---------------+
+| Active Response = No  | t = 6         | u = 5         | t+u = 11      |
++-----------------------+---------------+---------------+---------------+
+| Total                 | r+t = 26      | s+u = 20      | N = 46        |
++-----------------------+---------------+---------------+---------------+
+
+## Methods for Calculating Confidence Intervals for Proportion Difference from matched pairs
+
+
 
 ### Normal Approximation Method (Also known as the Wald or asymptotic CI Method)
 
