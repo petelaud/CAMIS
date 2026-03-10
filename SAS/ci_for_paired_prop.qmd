@@ -75,55 +75,57 @@ Worked examples below use the following artificial dataset:
 
 ## Methods for Calculating Confidence Intervals for Proportion Difference from matched pairs
 
+### Normal Approximation Method (Also known as the Wald Method)
 
+In large random samples from paired data, the sampling distribution of the difference between two proportions is assumed to follow the normal distribution. The estimated SE for the difference and 95% confidence interval can be calculated using the following equations.
 
-### Normal Approximation Method (Also known as the Wald or asymptotic CI Method)
+$SE(D)=\frac{1}{N} \times \sqrt{(s+t-\frac{(s-t)^2}{N})} = \sqrt{\frac{1}{N}(\hat p_{12} + \hat p_{21} - (\hat p_{12} - \hat p_{21})^2)}$
 
-In large random samples from independent trials, the sampling distribution of the difference between two proportions approximately follows the normal distribution. Hence the SE for the difference and 95% confidence interval can be calculated using the following equations.
+$D-z_{\alpha/2} \times SE(D)$ to $D+z_{\alpha/2} \times SE(D)$
 
-$SE(D)=\frac{1}{n} * sqrt(s+t-\frac{(s-t)^2}{n})$
+So, for the example dataset,
 
-$D-z_\alpha * SE(D)$ to $D+z_\alpha * SE(D)$
+D = (15-6) /46 = 0.196
 
-where $z_\alpha$ is the $1-\alpha/2$ quantile of a standard normal distribution corresponding to level $\alpha$,
+SE(D) = 1/ 46 \* sqrt (15+6- (((15-6)\^2)/46) ) = 0.09535
 
-D=(15-6) /46 = 0.196
+Lower CI= 0.196 - 1.96 \*0.0954 = 0.008764
 
-SE(D) = 1/ 46 \* sqrt (15+6- (((15+6)\^2)/46) ) = 0.0956
+Upper CI = 0.196 + 1.96 \* 0.0954 = 0.382541
 
-Lower CI= 0.196 - 1.96 \*0.0956 = 0.009108
+Like other Wald methods, this approach has been found to perform poorly, failing to achieve the nominal confidence level[@newcombe1998][@fagerland2014]. An adjustment was suggested by Bonett & Price, similar to Agresti-Caffo for independent proportions, using $N'=N+2$ instead of $N$, and $\tilde p_{12} = (s+1)/N'$ and $\tilde p_{21} = (r+1)/N'$, instead of $\hat p_{12}$ and $\hat p_{21}$.
 
-Upper CI = 0.196 + 1.96 \* 0.0956 = 0.382892
+### Newcombe Method (Also known as the Hybrid Score method, Square-and-Add, or the Method of Variance Estimates Recovery (MOVER) )
 
-### Wilson Method (Also known as the Score method or the Altman, Newcombe method^7^ )
+Note that Newcombe described this as a 'Score' method in his 1998 paper, but his later work labelled it as 'Square-and-add' - it is not really a score method, but a hybrid method obtained by combining Wilson Score intervals calculated separately for the two proportions.
 
-Derive the confidence intervals using the Wilson Method equations above for each of the individual single samples 1 and 2.
+Derive the confidence intervals for each of the individual single samples 1 and 2, using the Wilson Method equations as described [here](ci_for_prop.html).
 
-Let l1 = Lower CI for sample 1, and u1 be the upper CI for sample 1.
+Let $l_1$ = Lower CI for sample 1, and $u_1$ be the upper CI for sample 1.
 
-Let l2 = Lower CI for sample 2, and u2 be the upper CI for sample 2.
+Let $l_2$ = Lower CI for sample 2, and $u_2$ be the upper CI for sample 2.
 
-We then define $\phi$ which is used to correct for $\hat p_1$ and $\hat p_2$ not being independent. As the samples are related, $\phi$ is usually positive and thus makes the confidence interval smaller (narrower).
+We then define $\phi$ which is an estimate of the correlation coefficient, used to correct for $\hat p_1$ and $\hat p_2$ not being independent. As the samples are related, $\phi$ is usually positive and thus makes the confidence interval smaller (narrower).
 
 If any of r+s, t+u, r+t, s+u are zero, then set $\phi$ to be 0.
 
-Otherwise we calculate A, B and C, and $\phi=C / sqrt A$
+Otherwise we calculate A, B and C, and $\phi=C / \sqrt A$
 
 In the above: $A=(r+s)(t+u)(r+t)(s+u)$ and $B=(ru-st)$
 
-To calculate C follow the table below. n=sample size.
+To calculate C follow the table below. N = sample size.
 
 | Condition of B            | Set C equal to |
 |---------------------------|----------------|
-| If B is greater than n/2  | B - n/2        |
-| If B is between 0 and n/2 | 0              |
+| If B is greater than N/2  | B - N/2        |
+| If B is between 0 and N/2 | 0              |
 | If B is less than 0       | B              |
 
-Let D = p1-p2 (the difference between the observed proportions of responders)
+Let $D = \hat p_1 - \hat p_2$ (the difference between the observed proportions of responders)
 
-The Confidence interval for the difference between two population proportions is: $D - sqrt((p_1-l_1)^2-2\phi(p_1-l_1)(u_2-p_2)+(u_2-p_2)^2 )$ to
+The CI for the paired difference between the proportions is: $D - \sqrt{((\hat p_1 - l_1)^2 - 2\phi(\hat p_1 - l_1)(u_2 - \hat p_2) + (u_2 - \hat p_2)^2 )}$ to
 
-$D + sqrt((p_2-l_2)^2-2\phi(p_2-l_2)(u_1-p_1)+(u_1-p_1)^2 )$
+$D + \sqrt{((\hat p_2 - l_2)^2 - 2\phi(\hat p_2 - l_2)(u_1 - \hat p_1) + (u_1 - \hat p_1)^2 )}$
 
 First using the Wilson Method equations for each of the individual single samples 1 and 2.
 
@@ -137,27 +139,24 @@ First using the Wilson Method equations for each of the individual single sample
 
 $A=(r+s)(t+u)(r+t)(s+u)$ = 9450000
 
-B=10
+B = 10
 
-C= 0 (as B is between 0 and n/2)
+C = 0 (as B is between 0 and N/2)
 
 $\phi$ = 0.
 
-Hence the middle part of the equation simplies to 0, and becomes simply:
+Hence the middle part of the equation simplifies to 0, and therefore in this case the interval is the same as the MOVER interval for independent proportions:
 
-Lower CI = $D - sqrt((p_1-l_1)^2+(u_2-p_2)^2 )$ = 0.196 - sqrt \[ (0.761-0.603)\^2 + (0.680-0.565) \^2 \]
+Lower CI = $D - \sqrt{((\hat p_1 - l_1)^2 + (u_2 - \hat p_2)^2 )}$ = 0.196 - sqrt \[ (0.761-0.621)\^2 + (0.698-0.565) \^2 \]
 
-Upper CI = $D + sqrt((p_2-l_2)^2+(u_1-p_1)^2 )$ = 0.196 + sqrt \[ (0.565-0.440)\^2 + (0.878-0.761) \^2 \]
+Upper CI = $D + \sqrt{((\hat p_2 - l_2)^2 + (u_1 - \hat p_1)^2 )}$ = 0.196 + sqrt \[ (0.565-0.422)\^2 + (0.861-0.761) \^2 \]
 
 CI= 0.002602 to 0.369943
 
-## Continuity Adjusted Methods
+Other variants of the MOVER method are possible, and achieve improved coverage properties, by replacing the Wilson method with a more centrally-located interval for the single proportions. For example, using the Jeffreys method gives a CI of (0.003161, 0.373479).
 
-\[TBC\]
 
-## Consistency with Hypothesis Tests
 
-\[TBC\]
 
 
 
