@@ -18,6 +18,7 @@ The adcibc data stored [here](../data/adcibc.csv) was used in this example, crea
 library(tidyverse)
 library(cardx)
 library(DescTools)
+library(ratesci)
 adcibc2 <- read_csv("../data/adcibc.csv")
 
 adcibc <- adcibc2 |>
@@ -30,7 +31,7 @@ adcibc <- adcibc2 |>
   ) |>
   select(trt, trtn, resp, respn)
 
-# cardx package required a vector with 0 and 1s for a single proportion CI
+# cardx package requires a vector with 0 and 1s for a single proportion CI
 act <- filter(adcibc, trt == "ACT") |>
   select(respn)
 act2 <- act$respn
@@ -47,19 +48,15 @@ adcibc |>
 
 # Packages
 
-**The {cardx} package** is an extension of the {cards} package, providing additional functions to create Analysis Results Data Objects (ARDs)^1^. It was developed as part of {NEST} and pharmaverse. This package requires the binary endpoint to be a logical (TRUE/FALSE) vector or a numeric/integer coded as (0, 1) with 1 (TRUE) being the success you want to calculate the confidence interval for.
+**The {cardx} package** includes waldcc, wald, clopper-pearson, wilson, wilsoncc, strat_wilson, strat_wilsoncc, agresti-coull and jeffreys methods for one-sample proportions
 
-See [here](R:%20Functions%20for%20Calculating%20Proportion%20Confidence%20Intervals) for full description of the {cardx} proportions equations.
-
-If calculating the CI for a difference in proportions, the package requires both the response and the treatment variable to be numeric/integer coded as (0, 1) (or logical vector).
-
-Instead of the code presented below, you can use `ard_categorical_ci(data, variables=resp, method ='wilson')` for example. This invokes the code below but returns an analysis results dataset (ARD) format as the output. Methods included are waldcc, wald, clopper-pearson, wilson, wilsoncc, strat_wilson, strat_wilsoncc, agresti-coull and jeffreys for one-sample proportions and methods for 2 independent samples, however currently does not have a method for 2 matched proportions.
-
-**The {ratesci} package** is ... \[TBC\] - note, current development version at <https://github.com/petelaud/ratesci> has new features in the rateci() function (including more of the CI methods described below) compared to the CRAN release.
+Instead of the code presented below, you can use `ard_categorical_ci(data, variables=resp, method ='wilson')` for example. This invokes the code below but returns an analysis results dataset (ARD) format as the output.
 
 **The {PropCIs} package** produces CIs for methods such as Blaker's exact method and Midp which aren't available in {cardx} but are available in SAS. We found results agreed with SAS to the 5th decimal place. The package also calculates CIs for Clopper-Pearson, Wald, Wilson, Agresti-Coull and these align to results obtained in cardx to at least the 7th decimal place. The {PropsCIs} package requires just the number of events (numerator number of successes) & total number of subjects (denominator) as an input dataset. Given Blaker and Midp are rarely used in practice, and {PropsCIs} isn't a package commonly downloaded from CRAN, further details are not provided here.
 
 **The {Hmisc} package** produces CIs using the Clopper-Pearson method. In this example (x=36 and n=154), the results match the cardx package. Documentation reports that the method uses F distribution to compute exact intervals based on the binomial cdf. However, if the percentage of responders is 100% then the upper limit is set to 1. Similarly if the percentage of responders is 0%, then the lower limit is set to 0. Hence, in extreme cases there may be differences between this package and the standard implementation of Clopper-Pearson method.
+
+**The {ratesci} package** produces a variety of CIs for a proportion, including ... \[TBC\] - note, the current development version at <https://github.com/petelaud/ratesci> has new features in the rateci() function for a single proportion (including more of the CI methods described below) compared to the CRAN release.
 
 **The {RBesT} package (Prior to Version 1.8-0)** produces CIs using the Clopper-Pearson method. In this example (x=36 and n=154), the results match the cardx package. However, as described below, there are 2 cases where the results using RBesT package do not match cardx or Hmisc.
 
