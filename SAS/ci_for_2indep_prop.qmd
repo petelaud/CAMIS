@@ -2,8 +2,6 @@
 title: "Confidence Intervals for Independent Proportions in SAS"
 bibliography: references.bib
 csl: nature.csl 
-execute: 
-  eval: false
 ---
 
 ## Introduction
@@ -65,7 +63,7 @@ SAS PROC FREQ is able to calculate CIs for RD using the following methods: Agres
 
 The SCAS method is not available in PROC FREQ, but can be produced using a SAS macro (`%SCORECI`) which can be downloaded from <https://github.com/petelaud/ratesci-sas>.
 
-### Normal Approximation Method (Also known as the Wald or asymptotic CI Method)
+### Normal Approximation Method (Also known as the Wald Method)
 
 The difference between two independent sample proportions is calculated as: $\hat \theta_{RD} = \hat p_1 - \hat p_2 = x_1 / n_1 - x_2 / n_2$
 
