@@ -120,7 +120,7 @@ The Agresti-Coull method is output by SAS using `BINOMIAL(LEVEL="Yes" CL=AGRESTI
 
 ### Jeffreys method
 
-The Jeffreys method is a particular type of Bayesian Highest Probability Density (HPD) method. For binomial proportions, the beta distribution is generally used for the conjugate prior, which consists of two parameters $\alpha'$ and $\beta'$. Setting $\alpha'=\beta'=0.5$ is called the Jeffreys prior. This is considered as non-informative for a binomial proportion. The resulting posterior density gives the CI as
+The Jeffreys 'equal-tailed' method is a particular type of Bayesian method, which optimises central location instead of Highest Probability Density (HPD). For binomial proportions, the beta distribution is generally used for the conjugate prior, which consists of two parameters $\alpha'$ and $\beta'$. Setting $\alpha'=\beta'=0.5$ is called the Jeffreys prior. This is considered as non-informative for a binomial proportion. The resulting posterior density gives the CI as
 
 $$
 (Beta (x + 0.5, n - x + 0.5)_{\alpha/2}, Beta (x + 0.5, n - x + 0.5)_{1-\alpha/2})
@@ -146,7 +146,7 @@ The Blaker method is output by SAS using `BINOMIAL(LEVEL="Yes" CL=BLAKER);`
 
 ## Continuity Adjusted Methods
 
-SAS offers the 'CORRECT' option for producing more conservative versions of the Wald and Wilson Score intervals.
+SAS offers the 'CORRECT' option for producing more conservative versions of the Wald and Wilson Score intervals. These are intended to emulate the strictly conservative coverage of the 'exact' method, but often fail to do so. In particular, due to the skewed coverage of the Wilson interval, the 'corrected' version has one-sided coverage that exceeds the nominal $\alpha/2$ for extreme values of p.
 
 ## Consistency with hypothesis tests
 
