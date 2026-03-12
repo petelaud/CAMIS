@@ -322,6 +322,13 @@
       ],
       "Hash": "aa80df9a628ce6979f781a33e97d250f"
     },
+    "PropCIs": {
+      "Package": "PropCIs",
+      "Version": "0.3-0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "83c746e8590a3e64d791daca69f1bf27"
+    },
     "QuickJSR": {
       "Package": "QuickJSR",
       "Version": "1.9.0",
