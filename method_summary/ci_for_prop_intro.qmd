@@ -84,7 +84,7 @@ So-called 'exact' methods are designed to guarantee strictly conservative covera
 
 There are actually a few different versions of 'exact' methods for each contrast, with alternatives aimed at reducing the conservatism of coverage. For example, Chan-Zhang is an improvement on Santner-Snell. However, it should be noted that some methods (e.g. Blaker, Agresti-Min) achieve reduced conservatism by inverting a two-sided exact test, but as a result they do not satisfy the strictly conservative criterion for one-sided coverage (and therefore would produce inflated type 1 error rates if used for a non-inferiority test).
 
-Several asymptotic methods offer a continuity adjustment, which aims to emulate 'exact' methods and achieve almost conservative coverage, by for example adding a quantity of the order $0.5 \times n$ to the formula. Generally this is not a successful modification to the Wald method, but can produce good results for the score methods. It has been suggested that an adjustment of smaller magnitude such as $3/8 \times n$ [@mehrotra2000], or $0.25 \times n$[@laud2017, Appendix S2] (or any other selected value on a 'sliding scale' from 0 to 0.5) could be used to achieve coverage that is at least $(1-\alpha)$ nearly all of the time.
+Several asymptotic methods offer a continuity adjustment, which aims to emulate 'exact' methods and achieve almost conservative coverage, by for example adding a quantity of the order $0.5 / N$ to the formula. Generally this is not a successful modification to the Wald method, but can produce good results for the score methods. It has been suggested that an adjustment of smaller magnitude such as $0.25 / N$[@laud2017, Appendix S2] (or any other selected value on a 'sliding scale' from 0 to 0.5) could be used to achieve coverage that is at least $(1-\alpha)$ nearly all of the time.
 
 ## 'Mid-P' Methods
 
@@ -96,7 +96,7 @@ Although theoretically possible for any contrast, the mid-P method is only imple
 
 Here we provide an overview of the packages containing methods for the different analysis types. Further detail of the specific methods offered and agreement between packages can be found on the relevant pages.
 
-**The {cardx} package** is an extension of the {cards} package, providing additional functions to create Analysis Results Data Objects (ARDs)^1^. It was developed as part of {NEST} and pharmaverse. This package requires the binary endpoint to be a logical (TRUE/FALSE) vector or a numeric/integer coded as (0, 1) with 1 (TRUE) being the success you want to calculate the confidence interval for.
+**The [{cardx} package](https://insightsengineering.github.io/cardx)** is an extension of the {cards} package, providing additional functions to create Analysis Results Data Objects (ARDs). It was developed as part of {NEST} and pharmaverse. This package requires the binary endpoint to be a logical (TRUE/FALSE) vector or a numeric/integer coded as (0, 1) with 1 (TRUE) being the success you want to calculate the confidence interval for.
 
 If calculating the CI for a difference in proportions, the package requires both the response and the treatment variable to be numeric/integer coded as (0, 1) (or logical vector).
 
@@ -104,7 +104,7 @@ Methods are included for one-sample proportions and limited options for 2 indepe
 
 **The {PropCIs} package** produces a selection of CIs for single proportion, and estimation of all contrasts for independent proportions and paired proportions (except paired RR). The {PropsCIs} package generally requires just the number of events (numerator number of successes) & total number of subjects (denominator) as an input dataset.
 
-**The {ratesci} package** contains functions to produce a variety of CIs for a single binomial proportion or Poisson event rate, and all contrasts of independent proportions/rates or paired proportions. It has a particular emphasis on classes of methods that can be applied across different analysis types, in particular the Asymptotic Score methods (with or without skewness correction) which come with naturally consistent hypothesis tests (for association or non-inferiority), and also caters for analysis of stratified datasets. The full range of MOVER methods is also included.
+**The {ratesci} package** contains functions to produce a variety of CIs for a single binomial proportion or Poisson event rate, and all contrasts of independent proportions/rates or paired proportions. It has a particular emphasis on classes of methods that can be applied across different analysis types, in particular the Asymptotic Score methods (with or without skewness correction) which come with naturally consistent hypothesis tests (for association or non-inferiority), and also caters for analysis of stratified datasets. The full range of MOVER (or 'square-and-add') methods is also included.
 
 **The {Hmisc} package** contains the binconf() function, which produces CIs for a single proportion only.
 
