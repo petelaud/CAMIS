@@ -220,7 +220,7 @@ proc freq data=adcibc2;
         BINOMIAL(LEVEL="Yes" 
         CORRECT
         CL= WALD WILSON 
-  			CLOPPERPEARSON BLAKER);
+            CLOPPERPEARSON BLAKER);
     by trt; 
 run;
 ```
