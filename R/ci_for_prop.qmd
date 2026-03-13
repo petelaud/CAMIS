@@ -75,7 +75,7 @@ The table below indicates which methods can be produced using each package. Meth
 | **Clopper-Pearson**        | Y     | Y       | Y       | Y         | Y      | Y     | Y     |
 | **Wilson-cc**              | Y     | \-      | Y       | \-        | Y      | \-    | \-    |
 | **SCAS-cc**                | \-    | \-      | Y       | \-        | \-     | \-    | \-    |
-| **Blaker**                 | \-    | Y       | \-      | Y         | \-     | \-    | \-    |
+| **Blaker**                 | \-    | Y       | Y       | Y         | \-     | \-    | \-    |
 
 Most of these packages require just the number of events (numerator number of successes) & total number of subjects (denominator) as an input dataset. The exception is {cardx}, which takes input data as one row per individual.
 
@@ -218,13 +218,13 @@ PropCIs::midPci(x = 36, n = 154, conf.level = 0.95)
 
 ## Blaker Method
 
-The Blaker 'exact' CI may be obtained as follows from {DescTools}. An identical result is obtained from `PropCIs::blakerci(),` but the SAS PROC FREQ result (0.170101, 0.307308) only matches to 4 decimal places.
+The Blaker 'exact' CI matching SAS output (to at least 7 dps) may be obtained as follows from {ratesci}, or from the dedicated {BlakerCI} package. Output from `DescTools::BinomCI` and `PropCIs::blakerci()` is less precise, matching to 4 decimal places.
 
 ```{r}
 options(digits=8)
-# cardx package blaker method 
-DescTools::BinomCI(36, 154, method=c("blaker", "clopper-pearson")) |>
-  as_tibble(rownames = "Method")
+# ratesci package Blaker method 
+ratesci::rateci(36, 154, cc = TRUE)$blaker |>
+  as_tibble()
 ```
 
 # Continuity Adjusted Methods
@@ -259,7 +259,7 @@ The output from some of the {cardx} functions (e.g. `proportion_ci_wilson()`) an
 
 \[To be moved to separate page for stratified analysis?\]
 
-{cardx} also contains a function `proportion_ci_strat_wilson()` which calculates stratified Wilson CIs for unequal proportions[@yan2010], with or without continuity adjustment, using a combination of the CIs from each stratum. The default weights (not clearly documented) are presumably those described in the publication, which aim to minimise the weighted sum of the squared interval lengths. The function has the facility to specify other weights (such as proportional to stratum size, for example, or adjusted for known population weights).
+{cardx} also contains a function `proportion_ci_strat_wilson()` which calculates stratified Wilson CIs for unequal proportions[@yan2010], with or without continuity adjustment, using a combination of the CIs from each stratum. The default weights (not clearly documented) are presumably those described in the publication, which aim to minimise the weighted sum of the squared interval lengths. The function has the facility to specify other weights (such as proportional to stratum size, for example, or adjusted for known population weights). Examples shown use the `adcibc2` dataset, stratified by age group.
 
 ```{r}
 actstrat <- adcibc2 |>
@@ -285,7 +285,7 @@ cardx::proportion_ci_strat_wilson(x = act2, strata = actage, weights = c(1/3, 1/
   as_tibble()
 ```
 
-The {ratesci} package can also produce stratified Wilson or SCAS Score intervals (with or without continuity adjustment), though the underlying methodology is different - this version uses a stratified score function[@laud2017] (analogous to the Miettinen-Nurminen formula for stratified risk difference) instead of constructing the interval from a CI calculated separately for each stratum. For stratified analysis, the `ratesci::scoreci()` function takes inputs in the form of vectors of the numerators and denominators per stratum. By default, weights are proportional to stratum size, but custom weights are also catered for using the `wt` argument. Arbitrary fixed weights are shown here to allow comparison with the {cardx} version.
+The {ratesci} package can also produce stratified Wilson or SCAS intervals (with or without continuity adjustment), though the underlying methodology is different - this version uses a stratified score function[@laud2017] (analogous to the Miettinen-Nurminen formula for stratified risk difference) instead of constructing the interval from a CI calculated separately for each stratum. For stratified analysis, the `ratesci::scoreci()` function takes inputs in the form of vectors of the numerators and denominators per stratum. By default, weights are proportional to stratum size, but custom weights are also catered for using the `wt` argument. Arbitrary fixed weights are shown here to allow comparison with the {cardx} version.
 
 ```{r}
 ratesci::scoreci(x1 = c(4, 21, 11), 

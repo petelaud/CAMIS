@@ -3960,11 +3960,11 @@
       "RemoteUsername": "petelaud",
       "RemoteRepo": "ratesci",
       "RemoteRef": "master",
-      "RemoteSha": "0f1153de43a72470723ec107e5f95f48f34beb1c",
+      "RemoteSha": "596524a5a42d53a32653072cdfd780babafa9887",
       "Requirements": [
         "R"
       ],
-      "Hash": "7adefd62cdfe29e53b073128c5e9f63d"
+      "Hash": "0022319d023865d30675de07f26ceaaa"
     },
     "rbibutils": {
       "Package": "rbibutils",
