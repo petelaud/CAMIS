@@ -1,5 +1,5 @@
 ---
-title: "R vs SAS Confidence Intervals for Proportions"
+title: "R vs SAS Confidence Intervals for Independent Proportions"
 ---
 
 ## Introduction
