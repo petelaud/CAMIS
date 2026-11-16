@@ -1069,15 +1069,16 @@
     },
     "contingencytables": {
       "Package": "contingencytables",
-      "Version": "3.1.0",
+      "Version": "3.1.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "MASS",
         "boot",
-        "methods"
+        "methods",
+        "utils"
       ],
-      "Hash": "8428e33b6a3b50c03f6122cf18755735"
+      "Hash": "21adfdf0aad65106ebfc61f43fdfd737"
     },
     "contrast": {
       "Package": "contrast",
@@ -3883,18 +3884,13 @@
     },
     "ratesci": {
       "Package": "ratesci",
-      "Version": "1.0.0.9000",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "petelaud",
-      "RemoteRepo": "ratesci",
-      "RemoteRef": "e1cd177c0f1fac61e8837d798f87a97c3c56a161",
-      "RemoteSha": "e1cd177c0f1fac61e8837d798f87a97c3c56a161",
+      "Version": "1.1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "R"
       ],
-      "Hash": "b59285780b3f393c521abd8a63812121"
+      "Hash": "4ccea9cae5da4745c6fd0922b946ce04"
     },
     "rbibutils": {
       "Package": "rbibutils",
