@@ -1,31 +1,35 @@
 ---
-title: "Confidence Intervals - proportions for stratified designs"
+title: "Confidence Intervals - comparing proportions for stratified designs in R"
+bibliography: references.bib
+csl: nature.csl 
 ---
 
 # Introduction
 
-As documented [here](Confidence%20limits%20using%20the%20Miettinen-Nurminen%20stratified%20method%20as%20de...%20-%20SAS%20Support%20Communities), there is requirement to use methods other than the wald method, for CI's for proportions. In certain cases, for example, when you have a baseline imbalance of stratification factors, the stratified Miettinen-Nurminen 1985 method is reccommended.
+As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the Wald method, for CIs for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, which improves the type 1 error rates achieved by such tests, especially for ratio contrasts.
 
 # Packages
 
-There are two identified packages that can do this in R:
+There are two identified packages with functions that can do this in R:
 
--   [{ratesci}](petelaud/ratesci: Confidence intervals and tests for comparison of rates)
--   [{cicalc}](Stratified Miettinen-Nurminen Confidence Interval for Difference in Proportions — ci_prop_diff_mn_strata • cicalc)
+- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci()` for stratified RD, RR and OR
+- [{cicalc}](https://cran.r-project.org/web/packages/cicalc/index.html) - `ci_prop_diff_mn_strata()` for stratified RD only
 
 This page is a placeholder whilst further content is being developed. Running code as shown below was found to give the same results in the examples tested.
 
 ## {ratesci}
 
 ```         
-NOTE that: skew = FALSE option, indicates no skewness correction which gives us the miettinen-nurminen method. 
+NOTE that: skew = FALSE option, indicates no skewness correction which gives us the stratified Miettinen-Nurminen method. 
 
-NOTE: The data contain are aggregated with 1 row per strata of results.
+NOTE: The data contain aggregated counts with 1 row per stratum of results.
 Eg.
 strata  x1  n1  x2  n2
 grp1    5   10  3   12
 grp2    1   3   7   15
 etc.
+
+
 
 ratesci_out <- scoreci(
     x1 = strat_counts$x1,  #n events in trt 1 (Active)
