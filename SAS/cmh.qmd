@@ -1,35 +1,44 @@
 ---
-title: "CMH Test"
+title: "Cochran-Mantel-Haenszel Test in SAS"
 ---
 
-# Cochran-Mantel-Haenszel Test
+# Introduction
 
-The CMH procedure tests for conditional independence in partial contingency tables for a 2 x 2 x K design. However, it can be generalized to tables of X x Y x K dimensions. This page also details derivation of risk differences and their confidence intervals which often accompany a CMH test.
+The Cochran-Mantel-Haenszel (CMH) procedure tests for conditional independence in partial contingency tables for a 2 x 2 x K design. However, it can be generalized to tables of X x Y x K dimensions. This page also briefly discusses derivation of risk differences and their confidence intervals which often accompany a CMH test.
 
-## CMH in SAS
+The CMH test is calculated in SAS using the `PROC FREQ` procedure. By default, it outputs the chi square statistic, degrees of freedom and p-value for each of the three alternative hypotheses: `general association`, `row means differ`, and `nonzero correlation`. It is up to the statistical analyst or statistician to know which result is appropriate for their analysis.
 
-The CMH test is calculated in SAS using the PROC FREQ procedure. By default, it outputs the chi square statistic, degrees of freedom and p-value for each of the three alternative hypothesis: `general association`, `row means differ`, and `nonzero correlation`. It is up to the statistical analyst or statistician to know which result is appropriate for their analysis.
-
-When the design of the contingency table is 2 x 2 x K (i.e, X == 2 levels, Y == 2 levels, K \>= 2 levels), the Mantel-Haenszel Common Odds Ratio (odds ratio estimate, 95% CI, P-value) and the Breslow-Day Test for Homogeneity of the Odds Ratios (chi-square statistic, degrees of freedom, P-value) are also output.
+When the design of the contingency table is 2 x 2 x K (i.e, X == 2 levels, Y == 2 levels, K \>= 2 levels), the three test statistics listed above are identical, and in this special case the SAS output also includes the Mantel-Haenszel Common Odds Ratio (odds ratio estimate, 95% CI, P-value) and the Breslow-Day Test for Homogeneity of the Odds Ratios (chi-square statistic, degrees of freedom, P-value).
 
 Below is the syntax to conduct a CMH analysis in SAS:
 
-```sas
+``` sas
 proc freq data = filtered_data; 
     tables K * X * Y / cmh; 
     * the order of K, X, and Y appearing on the line is important!;
+    * K = stratum, X = row, Y = column;
 run; 
 ```
 
-## Data used
+# Data used
 
 The adcibc data described [here](https://psiaims.github.io/CAMIS/R/cmh.html) is used for this example.
 
-## Code used
+``` sas
+proc import datafile = 'data/adcibc.csv'
+    out = adcibc
+    dbms = csv
+    replace;
+    getnames = yes;
+    guessingrows = max;
+run;
+```
 
-The code used is always the same, however, we can limit the number of levels in each example to show a 2x2x2 case, 2x3xK case etc.
+# Code used
 
-```sas
+The basic code used is shown below.
+
+``` sas
 proc freq data = adcibc; 
     tables agegr1 * trtp *  sex / cmh;  
 run;
@@ -37,7 +46,13 @@ run;
 
 ## Example 1: 2 x 2 x 2 (i.e, X = 2 TRT levels, Y = 2 SEX levels, K = 2 AGE levels)
 
-Let's test if there is a difference between 2 treatments (Placebo, and high dose), in the number of males and females, whilst adjusting for 2 levels of Age group (\<65 and 65-\<80). NOTE: prior to the proc freq, we have removed data in the low dose and \>80 categories.
+Let's test if there is a difference between 2 of the treatments (Placebo, and high dose), in the proportion of females, whilst adjusting for 2 levels of Age group (\<65 and 65-\<80). NOTE: using a `where` statement, we have removed data in the low dose and \>80 categories.
+
+``` sas
+proc freq data = adcibc(where = (trtpn ne 54 and agegr1 ne ">80")); 
+    tables agegr1 * trtp *  sex / cmh;  
+run;
+```
 
 ```{r}
 #| echo: false
@@ -46,9 +61,15 @@ Let's test if there is a difference between 2 treatments (Placebo, and high dose
 knitr::include_graphics("../images/cmh/saspage_output1.png")
 ```
 
-## Example 2: 2 x 3 x K (i.e, X = 2 levels, Y = 3 levels, K \>= 2 levels)
+## Example 2: 3 x 2 x K (i.e, X = 3 levels, Y = 2 levels, K \>= 2 levels)
 
-Let's test if there is a difference between 3 treatments (Placebo, Xanomeline low dose and high dose), in the number of males and females, whilst adjusting for 3 levels of Age group (\<65, 65-\<80 and \>=80). Here K=Agegrp1 the variable we are controlling for, X=Treatment -what we want to compare, and Y=Sex the variable we want to see if it's different between treatments (often this would be response/ non-response!).
+Let's test if there is a difference across all 3 treatments (Placebo, Xanomeline low dose and high dose), in the proportion of females, whilst adjusting for all 3 levels of Age group (\<65, 65-\<80 and \>=80). Here K=Agegrp1 the stratification variable we are controlling for, X=Treatment -what we want to compare, and Y=Sex the binary outcome variable we want to see if it's different between treatments (often this would be response/ non-response!).
+
+``` sas
+proc freq data = adcibc; 
+    tables agegr1 * trtp *  sex / cmh;  
+run;
+```
 
 ```{r}
 #| echo: false
@@ -57,17 +78,21 @@ Let's test if there is a difference between 3 treatments (Placebo, Xanomeline lo
 knitr::include_graphics("../images/cmh/saspage_output2.png")
 ```
 
-## Example 3: Risk Differences - Comparing treatment differences within strata and combined across strata
+# Estimating treatment effects within strata and combined across strata
 
-The above examples are a test for general association or if the row means scores differ across the strata controlling for another factor, however we may want to get an estimate of the direction and size of treatment effect (with CI), either within each strata or combined across strata.
+The CMH tests identify whether there are differences in the column variable response between rows while controlling for the stratification factor. However we may want to get an estimate of the direction and size of treatment effect (with CI), either within each stratum or combined across strata.
 
-### Risk Differences Within each Strata
+## Risk Differences and other contrasts for each stratum
 
-Risk differences within each strata (for 2 x 2 x K tables) can be obtained by adding the riskdiff option in SAS. The exact same output is obtained as per example 1 above, with the addition of 2 tables (1 for each age strata), showing the proportion of Female patients within each treatment (including 95% CIs), and the difference between the treatment proportions (including 95% CIs). By default, the CI's are calculated using Wald asymptotic confidence limits and in addition, the `exact` Clopper-Pearson confidence intervals for the risks. See SAS userguide [here](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details53.htm) and [here](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details53.htm) for more detail on the range of CI's SAS can calculate for the risk differences such as: Agresti-Caffo, exact unconditional, Hauck-Anderson, Miettinen-Nurminen (score), Newcombe (hybrid-score), Wald confidence limits, continuity-corrected Newcombe and continuity corrected Wald CIs.
+For more details on this topic, see the section on analysis of [CIs for independent proportions](https://psiaims.github.io/CAMIS/SAS/ci_for_2indep_prop.html)
 
-The individual treatment comparisons within strata can be useful to explore if the treatment effect is in the same direction and size for each strata, such as to determine if pooling them is in fact sensible.
+Risk differences within each stratum (for 2 x 2 x K tables) can be obtained by adding the `riskdiff` option in SAS. The exact same output is obtained as per example 1 above, with the addition of 2 tables (1 for each age stratum), showing the proportion of Female patients within each treatment (with 95% CIs), and the difference in proportions between the treatments (with 95% CI). By default, the CIs are calculated using Wald asymptotic confidence limits and in addition, the 'exact' Clopper-Pearson confidence intervals for the risks. See the SAS User Guide [here](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details53.htm) and [here](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details53.htm) for more detail on the range of CIs SAS can calculate for the risk differences.
 
-```sas
+Similarly, estimates of per-stratum Relative Risk and Odds Ratio may be obtained using the `relrisk` and `oddsratio` options.
+
+The individual treatment comparisons within strata can be useful to explore if the treatment effect is in the same direction and size for each stratum, such as to determine if pooling them is in fact sensible.
+
+``` sas
 # Default method is: Wald asymptotic confidence limits 
 proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
     tables  agegr1 * trtp *  sex / cmh riskdiff; 
@@ -81,12 +106,12 @@ run;
 knitr::include_graphics("../images/cmh/saspage_output3.png")
 ```
 
-Note above that exact CI's are not output for the difference betweeen the treatments. You can request SAS output other CI methods as shown below. This outputs the risk difference between the treatments and 95% CI, calculated for each age group strata separately using the Miettinen-Nurminen (score) (MN) method.
+Note above that exact CIs are not output for the difference between the treatments. You can request SAS output other CI methods as shown below. This example outputs the risk difference between the treatments and 95% CI, calculated for each age group stratum separately using the Miettinen-Nurminen (score) (MN) method.
 
-```sas
-# You can change the confidence limits derivation using (cl=xxx) option
+``` sas
+# You can change the confidence limits derivation using (CL=xxx) option
 proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne "\>80")); 
-    tables agegr1 * trtp * sex / cmh riskdiff(cl=mn);
+    tables agegr1 * trtp * sex / cmh riskdiff(CL=MN);
 run;
 ```
 
@@ -97,20 +122,36 @@ run;
 knitr::include_graphics("../images/cmh/saspage_output3b.png")
 ```
 
-### SAS Common error: SAS v9.4 cannot do a stratified Miettinen-Nurminen (score) method!
+The per-stratum estimates & CIs can also be visualised on a forest plot, using the `plots=riskdiffplot(CL=MN)` option (or `relriskplot`/`oddsratioplot` for RR and OR respectively).
 
-Note: you may think by running the following code, that you would be creating a common risk difference using the stratified Miettinen-Nurminen method. However, this is actually performing an unstratified Miettinen-Nurminen (Score) method. The output contains the same risk differences calculated for each strata separately and then a common risk difference using the 'summary score estimate' approach (however this is NOT a stratified approach !!). See [SAS guide](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details63.htm) for more detail.
+### SAS Common error: Make sure you output the risk difference for the correct level!
 
-PROC FREQ in the SAS Viya platform has introduced a new COMMONRISKDIFF(CL=MN/MNMH) option for the TABLES statement that does use the stratified MN method.
+Including either `column=1` or `column=2` tells SAS which is your outcome of interest (ie, often that you want to compare treatment responders and not treatment non-responders!) By default it takes the 1st column sorted alphabetically but you can change this as shown below.
 
-See the next section on Common risk differences available in SAS.
+Note that if the data are such that there are no responses in either treatment group, the cross-tabulation will only have 1 column, and SAS PROC FREQ will fail to produce a confidence interval. In this unusual situation however, a valid confidence interval can (and should) still be produced for Risk Difference, which may be obtained using the %SCORECI macro available at [https://github.com/petelaud/ratesci-sas/tree/main](#0).
 
-```sas
-# Specifying the Miettinen-Nurminen (score) method 
+``` sas
+proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne "\>80")); 
+    tables agegr1 * trtp * sex / cmh riskdiff(common column=2);
+run;
+```
+
+## Common Risk Differences across strata
+
+For more details on this topic, see the section on analysis of [stratified proportions](https://psiaims.github.io/CAMIS/SAS/ci_for_prop_stratified.html).
+
+### SAS Common error: SAS v9.4 cannot do a stratified Miettinen-Nurminen (score) confidence interval (but SAS Viya can)!
+
+You may think by running the following code, that you would be creating a common risk difference using the stratified Miettinen-Nurminen (MN) method. However, the `CL=MN` option only implements the MN method for the per-stratum estimates, **not** the common RD estimate.
+
+``` sas
+# Specifying the Miettinen-Nurminen (score) method for per-stratum estimates; 
 proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
-    tables  agegr1 * trtp *  sex / cmh riskdiff (common cl=mn); 
+    tables  agegr1 * trtp *  sex / cmh riskdiff(common CL=MN); 
 run; 
 ```
+
+The output contains the risk difference CIs calculated for each stratum separately, and then a common risk difference using the 'summary score estimate' which combines the per-stratum CIs, and another CI using the Mantel-Haenszel method with a Sato variance estimate as shown below. Neither of these are stratified intervals, and they both have the potential to contradict the result of the CMH test. See the [SAS Procedures Guide](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details63.htm) for more detail.
 
 ```{r}
 #| echo: false
@@ -119,58 +160,22 @@ run;
 knitr::include_graphics("../images/cmh/saspage_output3c.png")
 ```
 
-### SAS Common error: Make sure you output the risk difference for the correct level!
+`PROC FREQ` in the SAS Viya platform has introduced a new option `COMMONRISKDIFF(CL=MN)` that **does** use the stratified MN method (or `...(CL=MNMH)` with simpler MH weights). But there is no corresponding option for producing estimates of common RR or OR using the stratified MN method. The `COMMONRISKDIFF` option is also included in more recent implementations of SAS/STAT (14.3 onwards) on Base SAS 9.4, but without the `CL=MN` and `CL=MNMH` sub-options. The alternative `CL=MH` and `CL=SCORE` produce the same results as the `RISKDIFF(common)` option.
 
-Including either column=1 or column=2 tells SAS which is your outcome of interest (ie, often that you want to compare treatment responders and not treatment non-responders!) By default it takes the 1st column sorted alphabetically but you can change this as shown below.
-
-Note that if the data are such that there are no responses in either treatment group, the cross-tabulation will only have 1 column, and SAS PROC FREQ will fail to produce a confidence interval. In this unusual situation however, a valid confidence interval can (and should) still be produced, which may be obtained using the %SCORECI macro available at [https://github.com/petelaud/ratesci-sas/tree/main](#0).
-
-```sas
-proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne "\>80")); 
-    tables agegr1 * trtp * sex / cmh riskdiff(common column=2);
-run;
-
-```
-
-### Common Risk Differences across Strata
-
-Proc freq can calculate estimates of the common risk difference with 95% CIs, calculated using the Mantel-Haenszel and summary score (Miettinen-Nurminen) methods for multiway 2x2 tables. It can also provide stratified Newcombe confidence intervals using the method by Yan and Su (2010). The stratified Newcombe CIs are constructed from stratified Wilson CIs for the common (overall) row proportions. See [SAS help](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details63.htm) for more detail.
-
-Note that SAS (since v9.3M2 / STAT 12.1) PROC FREQ will produce the Miettinen-Nurminen ('MN') score interval for unstratified datasets only. The 'commonriskdiff' option added in SAS/STAT 14.3 requests risks (binomial proportions) and risk differences for 2x2 tables. But doesn't extend to stratified analysis.
-
-Stratified Miettinen-Nurminen CIs have more recently been added to PROC FREQ, but only within the SAS Viya platform (using CL=MN or CL=MNMH in the COMMONRISKDIFF option). The only other known way to have SAS produce these CIs is to use this publicly available macro: [https://github.com/petelaud/ratesci-sas/tree/main](#0). Note that the macro (currently) does not implement Miettinen & Nurminen's proposed iterative weights, but instead the simpler (and similar) MH weights are used.
-
-```sas
+``` sas
+# Specifying the stratified Miettinen-Nurminen (score) method in SAS Viya;
 proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
-    tables  agegr1 * trtp *  sex / cmh commonriskdiff(CL=SCORE TEST=SCORE); 
+    tables  agegr1 * trtp *  sex / cmh commonriskdiff(CL=MN); 
 run; 
-
-```
-
-```{r}
-#| echo: false
-#| fig-align: center
-#| out-width: 50%
-knitr::include_graphics("../images/cmh/saspage_output4.png")
-```
-
-```sas
-proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
-    tables  agegr1 * trtp *  sex / cmh commonriskdiff(CL= newcombe); 
-run;
-```
-
-```{r}
-#| echo: false
-#| fig-align: center
-#| out-width: 50%
-knitr::include_graphics("../images/cmh/saspage_output4b.png")
 ```
 
 # References
 
-SAS documentation (Specification): https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.3/statug/statug_freq_examples07.htm
+SAS v9.4 documentation (Specification): https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.3/statug/statug_freq_examples07.htm
 
-SAS documentation (Theoretical Basis + Formulas): https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/procstat/procstat_freq_details92.htm
+SAS v9.4 documentation (Theoretical Basis + Formulas): https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/procstat/procstat_freq_details92.htm
+
+SAS Viya documentation:
+https://documentation.sas.com/doc/en/pgmsascdc/v_080/statug/statug_freq_syntax08.htm
 
 Created using : SAS release:9.04.01M7P08062020"
