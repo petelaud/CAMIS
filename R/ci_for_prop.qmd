@@ -54,7 +54,7 @@ adcibc |>
 The table below indicates which methods can be produced using each package. Methods are grouped by those that aim to achieve the nominal confidence interval on average, then the 'exact' and continuity adjusted methods that aim to achieve the nominal confidence level as a minimum.
 
 |                            | cardx | PropCIs | ratesci | DescTools | cicalc | Hmisc | RBesT |
-|-------------|---------|---------|---------|---------|---------|---------|---------|
+|---------|---------|---------|---------|---------|---------|---------|---------|
 | For proximate coverage:    |       |         |         |           |        |       |       |
 | **Wald**                   | Y     | Y       | Y       | Y         | Y      | Y     | \-    |
 | **Agresti-Coull**          | Y     | Y       | Y       | Y         | Y      | \-    | \-    |
@@ -76,9 +76,9 @@ Most of these packages require just the number of events (numerator number of su
 
 **The {PropCIs} package** contains separate functions to produce CIs for various methods, including Blaker's 'exact' method and Mid-P which aren't available in {cardx} but are produced by SAS PROC FREQ. We found results agreed with SAS to the 5th decimal place. For methods given by both {PropCIs} and {cardx}, the results generally aligned to at least the 7th decimal place, but some methods (Wilson & mid-P) are only output with 4 dps.
 
-**The {ratesci} package** (`rateci()` function) produces a variety of CIs for a proportion - note, the current development version at <https://github.com/petelaud/ratesci> has added more methods compared to the CRAN release (v1.0.0). A CRAN update will be released in due course.
+**The {ratesci} package** includes the `rateci()` function which produces a wide selection of CIs for a proportion - note, the methods for conservative coverage are obtained with the `cc` argument.
 
-**The {DescTools} package** has a function `BinomCI()` that produces a wide selection of methods. It has
+**The {DescTools} package** has a function `BinomCI()` that produces a variety of methods.
 
 **The {cicalc} package** ... \[TBC\]
 
