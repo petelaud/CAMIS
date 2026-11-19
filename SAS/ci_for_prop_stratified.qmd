@@ -6,33 +6,55 @@ csl: nature.csl
 
 # Introduction
 
-As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the Wald method, for CIs for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, which improves the type 1 error rates achieved by such tests, especially for ratio contrasts.
+As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the Wald method, for CIs for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
+
+The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such tests, especially for ratio contrasts or designs with uneven treatment allocation.
+
+`SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. The default output includes CIs using the Mantel-Haenszel and Summary Score methods. Stratified MN CIs for Risk Difference (RD) have more recently been added to `PROC FREQ` within the SAS Viya platform. The only other known way to have SAS produce these CIs is to use publicly available SAS macros. The `%scoreci` macro is the only option if a stratified MN interval is required for an estimated Relative Risk (RR) or Odds Ratio (OR), and it can also handle analysis of exposure-adjusted incidence rates, such as might be used for analysis of adverse event data from clinical trials.
 
 # Online SAS macros
 
-There are two available macros to use in SAS: 
+There are two available macros to use in SAS:
 
 - [%scoreci](https://github.com/petelaud/ratesci-sas) - for stratified RD, RR and OR
 - [%mn_cmh](https://pharmasug.org/proceedings/2025/SA/PharmaSUG-2025-SA-198.pdf) - stratified RD only
 
-Both macros output the p-value for the CMH test for association along with the confidence interval. The `%scoreci` macro also produces a 1-sided hypothesis test against a user-specified null hypothesis value from the same score statistic (with or without skewness correction), for non-inferiority analysis.
-
-The `%scoreci` macro calculates the confidence intervals iteratively using MLE, however, the PharmaSUG paper's method calculates confidence intervals using weighted difference of rates. Therefore, the results can have very small differences (observed at the 2nd and 3rd decimal place), but these only arose when the sample size within each strata was very small. In most cases, the 2 macros aligned numerically.
+Both macros output the p-value for the CMH test for association along with the confidence interval. The `%scoreci` macro also produces a 1-sided hypothesis test against a user-specified null hypothesis value from the same score statistic (with or without skewness correction), for non-inferiority analysis (similar to the Farrington-Manning test for unstratified designs). `%scoreci` employs a more efficient root-finding procedure, so is able to generate results at greater precision with much faster computation times.
 
 Note that both of these macros employ a simplified version of the Miettinen & Nurminen method, by replacing their proposed iterative weights with the simpler MH weights, as recommended by Lu[@lu2008].
 
+There are occasional numerical differences between the results from the two macros. The PharmaSUG paper supporting the `%mn_cmh` macro claims they are based on "different methodological sources", but the underlying methodology appears to be identical. Discrepancies occur due to rare instances when `%mn_cmh` fails to calculate a stratum's contribution to the z-score. This happens for example when the observed proportions in a stratum are `3/8` and `5/8`. The following code produces a 95% CI of `(-0.324, 0.149)`, but if `x1` and `x2` are transposed the result is `(-0.190, 0.286)`. Hence the `%mn_cmh` macro cannot be relied upon to give consistent results.
+
+``` sas
+%strata(stratum =1, n1=8, n2=8, x1=3, x2=5);
+%strata(stratum =2, n1=10, n2=10, x1=4, x2=4);
+%strata(stratum =3, n1=10, n2=10, x1=4, x2=4);
+
+%mn_cmh(critval=1.96);
+```
+
+The corresponding results from `%scoreci` are `(-0.324, 0.190)` and `(-0.190, 0.324)`.
+
 ```         
-NOTE that: skew = FALSE option, indicates no skewness correction which gives us the miettinen-nurminen method. 
+/******
+NOTE: The dataset <input_dataset> contents need to be aggregated with 1 row per stratum of results.  With variables: N1, N0 for the sample size in the test and comparator groups and e1, e0 for the number of events in the test and comparator groups respectively
+*******/
+DATA DS1;
+INPUT STRATUM E1 N1 E0 N0;
+CARDS;
+ 1   3  8 5  8
+ 2   4 10 4 10
+ 3   4 10 4 10
+;
+run;
+quit;
 
-NOTE: The dataset <input_dataset> contents need to be aggregated with 1 row per strata of results.  With variables: N1, N0 for the sample size in the test and comparator groups and e1, e0 for the number of events in the test and comparator groups respectively
-Eg.
-strata  e1  N1  e0  N0
-grp1    5   10  3   12
-grp2    1   3   7   15
-etc.
-
-              
-%SCORECI(DS=<input_dataset>,
+/******
+NOTE that: 
+skew = FALSE option, indicates no skewness correction which gives us the miettinen-nurminen method. 
+weight = 1 option uses MH weights
+*******/
+%SCORECI(DS = DS1,
          CONTRAST = RD,
          SKEW = FALSE,
          LEVEL = 0.95,
@@ -43,7 +65,7 @@ etc.
 
 # SAS PROC FREQ on the SAS Viya platform
 
-`SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. It may be obtained in the SAS Viya platform, but only for the Risk Difference contrast.
+The stratified MN CI may be obtained in the SAS Viya platform, but only for the Risk Difference contrast.
 
 ``` sas
 # Specifying the stratified Miettinen-Nurminen (score) method in SAS Viya;
@@ -52,7 +74,7 @@ proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80"));
 run; 
 ```
 
-`CL=MN` applies the iterative weighting scheme as defined in the Miettinen-Nurminen 1985 paper. An alternative simpler Mantel-Haenszel weighting is often used instead, having been found to produce similar results in a 2008 ASA paper[@lu2008], and that version is obtained with `CL=MNMH`.
+`commonriskdiff(CL=MN)` applies the iterative weighting scheme as defined in the Miettinen-Nurminen 1985 paper. An alternative simpler Mantel-Haenszel weighting is often used instead, having been found to produce similar results in a 2008 ASA paper[@lu2008], and that version is obtained with `CL=MNMH`.
 
 # Alternative methods in Base SAS v9.4 PROC FREQ
 
@@ -66,17 +88,15 @@ run;
 
 As of SAS/STAT 15.4, `PROC FREQ` provides a `commonriskdiff(CL=xxx)` option giving a number of alternative methods for calculating CIs for common risk difference from stratified 2x2xK tables, including:
 
-- Mantel-Haenszel with Sato variance estimate
+- Mantel-Haenszel with Sato variance estimate `(CL=MH)`
 
-- Minimum Risk (Mehrotra and Railkar) method
+- Minimum Risk (Mehrotra and Railkar) method `(CL=MR)`
 
-- The Summary Score (Agresti) method, starts with the per-stratum MN CLs, and combines their midpoints (rather than the point estimates), together with pseudo-variance estimates derived from the interval widths, to produce a pooled inverse-variance estimate of the common RD and its CI.
+- The Summary Score (Agresti) method `(CL=score)`, starts with the per-stratum MN CLs, and combines their midpoints (rather than the point estimates), together with pseudo-variance estimates derived from the interval widths, to produce a pooled inverse-variance estimate of the common RD and its CI.
 
-- Stratified Newcombe confidence intervals using the method by Yan and Su (2010). These are constructed from stratified Wilson CIs for the common (overall) row proportions.
+- Stratified Newcombe confidence intervals `(CL=newcombe)` using the method by Yan and Su (2010). These are constructed from stratified Wilson CIs for the common (overall) row proportions.
 
-See [SAS help](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details63.htm) for more details.
-
-Stratified Miettinen-Nurminen CIs have more recently been added to `PROC FREQ`, but only within the SAS Viya platform (using `CL=MN` or `CL=MNMH` in the `COMMONRISKDIFF` option). The only other known way to have SAS produce these CIs is to use this publicly available macro: [https://github.com/petelaud/ratesci-sas/tree/main](#0). Note that the macro (currently) does not implement Miettinen & Nurminen's proposed iterative weights, but instead the simpler (and similar) MH weights are used.
+See [SAS Help](https://documentation.sas.com/doc/en/pgmsascdc/9.4_3.5/statug/statug_freq_details63.htm) for more details.
 
 ``` sas
 proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
