@@ -6,11 +6,11 @@ csl: nature.csl
 
 # Introduction
 
-As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the Wald method, for CIs for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
+As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal (Wald) method, for confidence intervals (CIs) for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
 
-The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such tests, especially for ratio contrasts or designs with uneven treatment allocation.
+The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
 
-`SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. The default output includes CIs using the Mantel-Haenszel and Summary Score methods. Stratified MN CIs for Risk Difference (RD) have more recently been added to `PROC FREQ` within the SAS Viya platform. The only other known way to have SAS produce these CIs is to use publicly available SAS macros. The `%scoreci` macro is the only option if a stratified MN interval is required for an estimated Relative Risk (RR) or Odds Ratio (OR), and it can also handle analysis of exposure-adjusted incidence rates, such as might be used for analysis of adverse event data from clinical trials.
+`SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. The default output includes CIs using the Mantel-Haenszel (Approximate Normal) and Summary Score methods. Stratified MN CIs for Risk Difference (RD) have more recently been added to `PROC FREQ` within the SAS Viya platform. The only other known way to have SAS produce these CIs is to use publicly available SAS macros. The `%scoreci` macro is the only option if a stratified MN interval is required for an estimated Relative Risk (RR) or Odds Ratio (OR), and it can also handle analysis of exposure-adjusted incidence rates, such as might be applied to adverse event data from clinical trials.
 
 # Online SAS macros
 
@@ -26,9 +26,9 @@ Note that both of these macros employ a simplified version of the Miettinen & Nu
 There are occasional numerical differences between the results from the two macros. The PharmaSUG paper supporting the `%mn_cmh` macro claims they are based on "different methodological sources", but the underlying methodology appears to be identical. Discrepancies occur due to rare instances when `%mn_cmh` fails to calculate a stratum's contribution to the z-score. This happens for example when the observed proportions in a stratum are `3/8` and `5/8`. The following code produces a 95% CI of `(-0.324, 0.149)`, but if `x1` and `x2` are transposed the result is `(-0.190, 0.286)`. Hence the `%mn_cmh` macro cannot be relied upon to give consistent results.
 
 ``` sas
-%strata(stratum =1, n1=8, n2=8, x1=3, x2=5);
-%strata(stratum =2, n1=10, n2=10, x1=4, x2=4);
-%strata(stratum =3, n1=10, n2=10, x1=4, x2=4);
+%strata(stratum=1, n1=8, n2=8, x1=3, x2=5);
+%strata(stratum=2, n1=10, n2=10, x1=4, x2=4);
+%strata(stratum=3, n1=10, n2=10, x1=4, x2=4);
 
 %mn_cmh(critval=1.96);
 ```
@@ -51,7 +51,7 @@ quit;
 
 /******
 NOTE that: 
-skew = FALSE option, indicates no skewness correction which gives us the miettinen-nurminen method. 
+skew = FALSE option, omits the skewness correction to give the Miettinen-Nurminen method. 
 weight = 1 option uses MH weights
 *******/
 %SCORECI(DS = DS1,
@@ -68,7 +68,8 @@ weight = 1 option uses MH weights
 The stratified MN CI may be obtained in the SAS Viya platform, but only for the Risk Difference contrast.
 
 ``` sas
-# Specifying the stratified Miettinen-Nurminen (score) method in SAS Viya;
+*** Specifying the stratified Miettinen-Nurminen (score) method in SAS Viya;
+*** Input dataset structured as 1 row per subject (unless using a WEIGHT statement);
 proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
     tables  agegr1 * trtp *  sex / cmh commonriskdiff(CL=MN); 
 run; 
