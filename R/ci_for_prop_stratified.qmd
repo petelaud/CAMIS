@@ -6,14 +6,20 @@ csl: nature.csl
 
 # Introduction
 
-As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the Wald method, for CIs for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, which improves the type 1 error rates achieved by such tests, especially for ratio contrasts.
+As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal (Wald) method, for confidence intervals (CIs) for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
+
+The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
 
 # Packages
 
-There are two identified packages with functions that can do this in R:
+There are five identified packages with functions that can produce a stratified MN CI in R:
 
-- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci()` for stratified RD, RR and OR
-- [{cicalc}](https://cran.r-project.org/web/packages/cicalc/index.html) - `ci_prop_diff_mn_strata()` for stratified RD only
+- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci()` for stratified RD, RR and OR, with either MN, MH or INV weighting
+- [{cicalc}](https://cran.r-project.org/web/packages/cicalc/index.html) - `ci_prop_diff_mn_strata()` for stratified RD only, with MN weighting
+- [{sasLM}](https://cran.r-project.org/web/packages/cicalc/index.html) - `RDmn(), RRmn() and ORmn()` for all stratified contrasts, with MN weighting
+- [{metalite.ae}](https://cran.r-project.org/web/packages/cicalc/index.html) - `rate_compare()` for stratified RD only, with MH weighting
+
+There is also publicly-available code associated with a 2014 paper by Klingenberg at <https://sites.williams.edu/bklingen/files/2013/06/stratMHRD.r>, including the `strat.MHRD.MN` function which gives the MN CI for RD using either MN or MH weights.
 
 This page is a placeholder whilst further content is being developed. Running code as shown below was found to give the same results in the examples tested.
 
