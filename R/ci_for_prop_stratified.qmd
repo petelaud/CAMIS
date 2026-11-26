@@ -161,6 +161,7 @@ c(cicalc_out$conf.low, cicalc_out$estimate, cicalc_out$conf.high)
 
 if(FALSE) {  
 # NOTE: Other CI methods are available - see package for more detail:
+  # Summary Score method matching SAS output with commonriskdiff(CL=score)
 ci_prop_diff_mn_strata(
   x = respn,
   by = trtn,
@@ -170,6 +171,29 @@ ci_prop_diff_mn_strata(
   delta = NULL,
   data = adcibc
 )
+
+  # Approximate Normal method matching SAS output for Mantel-Haenszel CI 
+  #PROC FREQ with commonriskdiff(CL=MH)
+  ci_prop_diff_mh_strata(
+    x = respn,
+    by = trtn,
+    strata = agegrp,
+    conf.level = 0.95,
+    data = adcibc
+  )
+ 
+  # Stratified Newcombe method matching SAS output with commonriskdiff(CL=Newcombe)
+  # Note the CI is flipped 
+  ci_prop_diff_nc_strata(
+    x = respn,
+    by = trtn,
+    strata = agegrp,
+    weights_method = "cmh",
+    conf.level = 0.95,
+    data = adcibc
+  )
+  
+  
 }
 ```
 
