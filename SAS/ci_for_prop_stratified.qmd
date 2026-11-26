@@ -8,13 +8,15 @@ csl: nature.csl
 
 As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal (Wald) method, for confidence intervals (CIs) for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
 
-The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
+The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest, because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
 
-`SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. The default output includes CIs using the Mantel-Haenszel (Approximate Normal) and Summary Score methods. Stratified MN CIs for Risk Difference (RD) have more recently been added to `PROC FREQ` within the SAS Viya platform. The only other known way to have SAS produce these CIs is to use publicly available SAS macros. The `%scoreci` macro is the only option if a stratified MN interval is required for an estimated Relative Risk (RR) or Odds Ratio (OR), and it can also handle analysis of exposure-adjusted incidence rates, such as might be applied to adverse event data from clinical trials.
+Note that Miettinen & Nurminen defined methods for estimating relative risk (RR) and odds ratio (OR), as well as for the risk difference (RD). Also note that there are variations of the Miettinen-Nurminen method, depending on the weights used: the original version as published in the 1985 paper uses an iterative weighting scheme. An alternative simpler version using Mantel-Haenszel weighting is often employed instead for RD, having been found to produce similar results in a 2008 ASA paper[@lu2008].
+
+`SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. The default output includes CIs using the Mantel-Haenszel (Approximate Normal) and Summary Score methods. Stratified MN CIs for RD have more recently been added to `PROC FREQ` within the SAS Viya platform. The only other known way to have SAS produce these CIs is to use publicly available SAS macros. The `%scoreci` macro is the only option if a stratified MN interval is required for an estimated RR or OR, and the same macro can also handle analysis of exposure-adjusted incidence rates, such as might be applied to adverse event data from clinical trials.
 
 # Data used
 
-The adcibc data stored [here](../data/adcibc.csv) was used in this example, creating a binary treatment variable `trt` taking the values of `Act` or `PBO` and a binary response variable `resp` taking the values of `Yes` or `No`. For this example, a response is defined as a score greater than 4.
+The adcibc data stored [here](../data/adcibc.csv) was used in this example, creating a binary treatment variable `trt` taking the values of `Act` or `PBO` and a binary response variable `resp` taking the values of `Yes` or `No`. For this example, a response is defined as a score greater than 4, and the 3-level age group variable is used as a stratification variable.
 
 ``` sas
 proc import datafile = 'data/adcibc.csv'
@@ -42,10 +44,10 @@ run;
 
 # Online SAS macros
 
-There are two available macros to use in SAS:
+There are two available macros to use in SAS for the stratified MN method:
 
-- [%scoreci](https://github.com/petelaud/ratesci-sas) - for stratified RD, RR and OR
-- [%mn_cmh](https://pharmasug.org/proceedings/2025/SA/PharmaSUG-2025-SA-198.pdf) - stratified RD only
+- [%scoreci](https://github.com/petelaud/ratesci-sas) - for stratified RD, RR and OR, with options for MH, INV or user-specified weighting.
+- [%mn_cmh](https://pharmasug.org/proceedings/2025/SA/PharmaSUG-2025-SA-198.pdf) - stratified RD only, with MH weighting.
 
 Both macros output the p-value for the CMH test for association along with the confidence interval. The `%scoreci` macro also produces a 1-sided hypothesis test against a user-specified null hypothesis value from the same score statistic (with or without skewness correction), for non-inferiority analysis (similar to the Farrington-Manning test for unstratified designs). `%scoreci` employs a more efficient root-finding procedure, so is able to generate results at greater precision with much faster computation times.
 
