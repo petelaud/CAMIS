@@ -929,6 +929,24 @@
       ],
       "Hash": "645cd21d708d14c2732a34b2ccba87b8"
     },
+    "cicalc": {
+      "Package": "cicalc",
+      "Version": "0.2.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "broom",
+        "cli",
+        "dplyr",
+        "forcats",
+        "glue",
+        "purrr",
+        "rlang",
+        "tidyr"
+      ],
+      "Hash": "bcbf9b2aae06c5a2707315c669451085"
+    },
     "classInt": {
       "Package": "classInt",
       "Version": "0.4-11",

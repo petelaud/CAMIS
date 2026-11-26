@@ -6,106 +6,184 @@ csl: nature.csl
 
 # Introduction
 
-As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal (Wald) method, for confidence intervals (CIs) for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
+As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal ('Wald') method, for confidence intervals (CIs) for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
 
 The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
 
-Note that there are variations of the Miettinen-Nurminen method, depending on the weights used: the original version as published in the Miettinen-Nurminen 1985 paper uses an iterative weighting scheme. An alternative simpler version using Mantel-Haenszel weighting is often employed instead for RD, having been found to produce similar results in a 2008 ASA paper[@lu2008].
+Note that Miettinen & Nurminen defined methods for estimating relative risk (RR) and odds ratio (OR), as well as for the risk difference (RD). Note also that there are variations of the Miettinen-Nurminen method, depending on the weights used: the original version as published in the Miettinen-Nurminen 1985 paper uses an iterative weighting scheme. An alternative simpler version using Mantel-Haenszel weighting is often employed instead for RD, having been found to produce similar results in a 2008 ASA paper[@lu2008].
 
 \[(Check & add citation - Tang2020?) - Use of either of these weighting schemes for RD and RR has been shown to be consistent with the efficient score and the CMH test for association. For the same consistency in analysis of stratified OR, it is necessary to use INV weights instead of MH.\]
 
-Alternative methods for a stratified CI include the Approximate Normal (Mantel-Haenszel with Sato variance estimate), Summary Score, Stratified Newcome, and Klingenberg methods.
+Alternative methods for stratified CIs include the Approximate Normal (Mantel-Haenszel with Sato variance estimate), Summary Score, Stratified Newcome, and Klingenberg methods.
 
 # Packages
 
-There are four identified packages on CRAN with functions that can produce a stratified MN CI in R.
-
-- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci(..., stratified = TRUE)` for stratified RD, RR and OR, with either MN, MH or IVS weighting. Includes optional skewness correction via the `skew = TRUE` argument.
-- [{cicalc}](https://cran.r-project.org/web/packages/cicalc/index.html) - `ci_prop_diff_mn_strata()` for stratified RD only, MH weighting, also with option for Summary Score method, and additional functions `ci_prop_diff_mh_strata()` and `ci_rel_risk_cmh_strata()` for the Mantel-Haenszel methods for RD and RR.
-- [{sasLM}](https://cran.r-project.org/web/packages/cicalc/index.html) - `RDmn(), RRmn() and ORmn()` for all stratified contrasts, MN weighting. \[`RDinv(), RRinv() and ORcmh()` ...\]
-- [{metalite.ae}](https://cran.r-project.org/web/packages/cicalc/index.html) - `rate_compare()` for stratified RD only, MH weighting applied with the `weight = "cmh"` argument.
-
-There is also publicly-available code associated with a 2014 paper by Klingenberg at <https://sites.williams.edu/bklingen/files/2013/06/stratMHRD.r>, including the `strat.MHRD.MN` function which gives the MN CI for RD using either MN or MH weights.
-
-The table below indicates which methods can be produced using each package, for stratified RD and RR:
+There are four identified packages on CRAN, plus one code script published outside CRAN, with functions that can produce a stratified MN CI in R. The table below indicates which MN and other methods can be produced using each package, for stratified RD and RR:
 
 | Method | Weights | ratesci | cicalc | sasLM | Klingenberg | metalite.ae |
-|-----------|-----------|-----------|-----------|----------|------------|-----------|
-| **MN** | MN | RD,RR | \- | RD,RR | RD# | \- |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| **MN** | MN | RD,RR | \- | RD,RR | \[RD#\] | \- |
 |  | MH | RD,RR | RD | \- | RD | RD |
-|  | Others\* | RD,RR |  | RD,RR | RD | \- |
+|  | Others\* | RD,RR | \- | \- | RD | \- |
 | **SCAS** | All | RD,RR | \- | \- | \- | \- |
-| **Mantel-Haenszel / Sato** | MH | \- | RD,RR | \- | RD | \- |
+| **Approximate Normal** | MH (Sato variance) | \- | RD,RR | \- | RD | \- |
+|  | IV | \- | \- | RD,RR | \- | \- |
 | **Summary Score** | IV (pseudo variance) | \- | RD | \- | \- | \- |
 | **Stratified Newcombe** | MH, \[Wilson?\] | \- | RD | \- | \- | \- |
 | **Klingenberg** | MH | \- | \- | \- | RD | \- |
 
 : \*e.g. Crude inverse variance, sample size, equal, or user-defined custom weights\
-#Klingenberg's implementation of MN weights does not recalculate the weights at each iteration
+#Klingenberg's implementation of MN weights contains an error in the `MN.weights()` function, because `resMLE.MN()` does not return estimates of p1 and p2, but rather estimates of the numerator and denominator of the score function.
 
-\[For stratified odds ratio, the MH weighting is not consistent with the efficient score. Here, it is recommended to use either MN weights, or weights based on the inverse variance derived from the constrained MLEs of p1 and p2 for each selected value of delta - this option is implemented in `ratesci::scoreci(..., weighting = "INV")`. Some packages (such as `sasLM::ORinv`) instead use the inverse variance derived from the crude stratum point estimates of p1 and p2, leading to discrepancies in results. Furthermore, `sasLM::ORmn()` claims to apply MN weights, but the output does not match with `ratesci::scoreci(..., weighting = "MN")`. Errors in the `sasLM` source code were noted in [@laud2025] - the package maintainers have addressed the issues raised for `RDmn()` and `RRmn()`, but inconsistencies remain for `ORmn()`.\]
+- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci(..., stratified = TRUE)` for stratified RD, RR and OR, with options for MN, MH, INV or user-defined weighting. Also includes optional skewness correction via the `skew = TRUE` argument.
+- [{cicalc}](https://cran.r-project.org/web/packages/cicalc/index.html) - `ci_prop_diff_mn_strata()` for stratified RD only, MH weighting, also with option `method = "summary score"` for the Summary Score method, and additional functions `ci_prop_diff_mh_strata()` and `ci_rel_risk_cmh_strata()` for the Mantel-Haenszel methods for RD and RR.
+- [{sasLM}](https://cran.r-project.org/web/packages/cicalc/index.html) - `RDmn(), RRmn() and ORmn()` for all stratified contrasts, MN weighting. `RDinv(), RRinv() and ORcmh()` appear to produce approximate normal intervals using inverse variance weighting for RD,RR and CMH weighting for OR.
+- [{metalite.ae}](https://cran.r-project.org/web/packages/cicalc/index.html) - `rate_compare()` for stratified RD only, MH weighting applied with the (non-default) `weight = "cmh"` argument.
+
+There is also publicly-available code associated with a 2014 paper by Klingenberg at <https://sites.williams.edu/bklingen/files/2013/06/stratMHRD.r>, including the `strat.MHRD.MN()` function which gives the MN CI for RD using MH weights by default (or various other weighting schemes including a flawed calculation of MN weights), and `strat.MHRD()` which offers the approximate Normal Mantel-Haenszel method and Klingenberg's proposed variant of the same. The approximate Normal method is also available in the {contingencytables} package `Wald_test_and_CI_common_diff_stratified_2x2()`.
+
+\[For stratified odds ratio, the MH weighting is not consistent with the efficient score. Here, it is recommended to use either MN weights, or weights based on the inverse variance derived from the constrained MLEs of p1 and p2 for each selected value of delta - this option is implemented in `ratesci::scoreci(..., weighting = "INV")`. Some packages (such as `sasLM::ORinv()`) instead use the inverse variance derived from the crude stratum point estimates of p1 and p2, leading to discrepancies in results. Furthermore, `sasLM::ORmn()` claims to apply MN weights, but the output does not match with `ratesci::scoreci(..., weighting = "MN")`. Errors in the `sasLM` source code were noted in [@laud2025] - the package maintainers have addressed the issues raised for `RDmn()` and `RRmn()`, but inconsistencies remain for `ORmn()`.\]
 
 This page is a placeholder whilst further content is being developed. Running code as shown below was found to give the same results in the examples tested.
 
-## {ratesci}
+# Data used
 
-```         
-NOTE that: skew = FALSE option, indicates no skewness correction which gives us the stratified Miettinen-Nurminen method. 
+The adcibc data stored [here](../data/adcibc.csv) was used in this example, creating a binary treatment variable `trt` taking the values of `ACT` or `PBO` and a binary response variable `resp` taking the values of `Yes` or `No`. For this example, a response is defined as a score greater than 4.
 
-NOTE: The data contain aggregated counts with 1 row per stratum of results.
-Eg.
-strata  x1  n1  x2  n2
-grp1    5   10  3   12
-grp2    1   3   7   15
-etc.
+```{r}
+#| echo: false
+#| include: false
+library(tidyverse)
+library(cardx)
+library(ratesci)
+library(contingencytables)
+options(digits=6)
+adcibc2 <- read_csv("../data/adcibc.csv")
 
+adcibc <- adcibc2 |>
+  select(AVAL, TRTP, AGEGR1) |>
+  mutate(
+    resp = if_else(AVAL > 4, "Yes", "No"),
+    respn = if_else(AVAL > 4, 1, 0),
+    trt = if_else(TRTP == "Placebo", "PBO", "ACT"),
+    trtn = if_else(TRTP == "Placebo", 2, 1),
+    agegrp = factor(AGEGR1, levels = c("<65", "65-80", ">80"))
+  ) |>
+  select(trt, trtn, agegrp, resp, respn)
 
+# some packages require aggregated counts
+# x1 = successes in active,  n1 = total subjects in active,
+# x2 = successes in placebo, n2 = total subjects in placebo
 
-ratesci_out <- scoreci(
-    x1 = strat_counts$x1,  #n events in trt 1 (Active)
-    n1 = strat_counts$n1,  #n subjects in trt 1 (Active)
-    x2 = strat_counts$x2,  #n events in trt 2 (comparator/placebo)
-    n2 = strat_counts$n2,  #n subjects in trt2 (comparator/placebo)
-    distrib = "bin",  #binomial distribution
-    contrast = "RD",  #risk difference
-    level = 0.95, # 95% ci
-    skew = FALSE, # disable skewness to get MN method
-    stratified = TRUE, #combine strata
-    weighting = "MH", #MH method as reccomended by MN method
-  )
+x <- adcibc |>
+  filter(respn == 1) |>
+  count(agegrp, trtn) |>
+  pivot_wider(names_from = trtn, names_prefix = "x", values_from = n, values_fill = 0)
+x
+
+n <- adcibc |>
+  count(agegrp, trtn) |>
+  pivot_wider(names_from = trtn, names_prefix = "n", values_from = n, values_fill = 0)
+n
+
+indat <- left_join(x, n, by = "agegrp") 
+
 ```
 
-## {cicalc}
+# Proportion Difference
 
-```         
-NOTE: set resp as: 1 = responder (event of interest), 0 = non-responders
-      set trt as: 0= Numerator Active, 1= Denominator Comparator/Placebo
-      set strat as: 
-NOTE: The data are not aggregated, there is 1 row per subject identifying their trt, resp and strat categorization
-Eg.
-subj  strat   resp  trt
-1     grp1    1     1
-2     grp1    0     0
-3     grp1    1     0
-etc
+Analysis of stratified comparisons of rates is most commonly conducted using the Risk Difference contrast parameter. Example code for producing the Miettinen-Nurminen CI for stratified RD, with either MN or MH weights, is shown below.
 
-NOTE: The following implements stratified mittinen nurminen
-cicalc_out <- ci_prop_diff_mn_strata(
-  x = resp, 
-  by = trt, 
-  strata = strat, 
-  data = dataqc2
+## Example code for {ratesci}
+
+```{r}
+# The ratesci::scoreci() function takes input data as vectors of aggregate data per stratum
+
+# NOTE that: skew = FALSE option, indicates no skewness correction which gives us the stratified Miettinen-Nurminen method. 
+
+ratesci_out1 <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "RD",  #risk difference
+    level = 0.95, # 95% CI
+    skew = FALSE, # disable skewness to get MN method
+    stratified = TRUE, #combine strata
+    weighting = "MH", #MH weights as recommended by Lu 2008
+  )
+
+ratesci_out1$estimates[, 1:3]
+
+
+ratesci_out2 <- ratesci::scoreci(
+  x1 = indat$x1,  #n events in trt 1 (Active)
+  n1 = indat$n1,  #n subjects in trt 1 (Active)
+  x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+  n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+  distrib = "bin",  #binomial distribution
+  contrast = "RD",  #risk difference
+  level = 0.95, # 95% CI
+  skew = FALSE, # disable skewness to get MN method
+  stratified = TRUE, #combine strata
+  weighting = "MN", #Iterative MN weights from 1985 paper
+)
+
+ratesci_out2$estimates[, 1:3]
+```
+
+## Example code for {cicalc}
+
+```{r}
+#NOTE: set resp as: 1 = responder (event of interest), 0 = non-responders
+#      set trt as: 0= Numerator Active, 1= Denominator Comparator/Placebo
+#      set strat as: 
+#NOTE: The data are not aggregated, there is 1 row per subject identifying their trt, resp and strat categorization
+#Eg.
+#subj  strat   resp  trt
+#1     grp1    1     1
+#2     grp1    0     0
+#3     grp1    1     0
+#etc
+
+#NOTE: The following implements stratified miettinen nurminen
+# This function applies MH weighting only
+cicalc_out <- cicalc::ci_prop_diff_mn_strata(
+  x = respn, 
+  by = trtn, 
+  strata = agegrp, 
+  data = adcibc
   )
   
-  
-NOTE: Other options are available - see package for more detail:
+c(cicalc_out$conf.low, cicalc_out$estimate, cicalc_out$conf.high)
+
+
+if(FALSE) {  
+# NOTE: Other CI methods are available - see package for more detail:
 ci_prop_diff_mn_strata(
-  x,
-  by,
-  strata,
-  method = c("score", "summary score"),
+  x = respn,
+  by = trtn,
+  strata = agegrp,
+  method = "summary score",
   conf.level = 0.95,
   delta = NULL,
-  data = NULL
+  data = adcibc
 )
+}
+```
+
+## Example code for {sasLM}
+
+```{R}
+# Input dataset must be a data frame with columns named y1, n1, y2, n2
+indat2 <- indat |>
+  rename(y1 = x1, y2 = x2) |>
+  select(!agegrp) |>
+  as.data.frame()
+
+# This function applies MN weighting only
+saslm_out <- sasLM::RDmn(indat2)
+saslm_out$Common[3:5]
+
 ```
