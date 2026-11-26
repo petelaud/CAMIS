@@ -12,6 +12,34 @@ The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular 
 
 `SAS PROC FREQ` in Base SAS (up to v9.4) does not produce a stratified MN confidence interval. The default output includes CIs using the Mantel-Haenszel (Approximate Normal) and Summary Score methods. Stratified MN CIs for Risk Difference (RD) have more recently been added to `PROC FREQ` within the SAS Viya platform. The only other known way to have SAS produce these CIs is to use publicly available SAS macros. The `%scoreci` macro is the only option if a stratified MN interval is required for an estimated Relative Risk (RR) or Odds Ratio (OR), and it can also handle analysis of exposure-adjusted incidence rates, such as might be applied to adverse event data from clinical trials.
 
+# Data used
+
+The adcibc data stored [here](../data/adcibc.csv) was used in this example, creating a binary treatment variable `trt` taking the values of `Act` or `PBO` and a binary response variable `resp` taking the values of `Yes` or `No`. For this example, a response is defined as a score greater than 4.
+
+``` sas
+proc import datafile = 'data/adcibc.csv'
+    out = adcibc
+    dbms = csv
+    replace;
+    getnames = yes;
+    guessingrows = max;
+run;
+
+data adcibc2 (keep=agegr1 trt resp) ;
+    set adcibc;     
+    if aval gt 4 then resp="Yes";
+    else resp="No";     
+    if trtp="Placebo" then trt="PBO";
+    else trt="Act"; 
+run;
+ 
+* Sort to ensure that the outcome of interest ("Yes" in this example) is first;
+* when using default COLUMN=1 option in the TABLES statement;
+proc sort data=adcibc2; 
+by agegr1 trt descending resp; 
+run;  
+```
+
 # Online SAS macros
 
 There are two available macros to use in SAS:
@@ -22,6 +50,48 @@ There are two available macros to use in SAS:
 Both macros output the p-value for the CMH test for association along with the confidence interval. The `%scoreci` macro also produces a 1-sided hypothesis test against a user-specified null hypothesis value from the same score statistic (with or without skewness correction), for non-inferiority analysis (similar to the Farrington-Manning test for unstratified designs). `%scoreci` employs a more efficient root-finding procedure, so is able to generate results at greater precision with much faster computation times.
 
 Note that both of these macros employ a simplified version of the Miettinen & Nurminen method, by replacing their proposed iterative weights with the simpler MH weights, as recommended by Lu[@lu2008].
+
+# Code used
+
+``` sas
+*** First manipulate the data to a form for input to the %scoreci macro;
+proc tabulate data=adcibc2 out=tab2;
+ class agegr1 trt resp;
+ table agegr1, (resp all), trt;
+run;
+
+data ds(keep = agegr1 e1 e0 n1 n0);
+ set tab2;
+ by _page_;
+ retain e1 e0 n1 n0;
+ * Initialise counts in case there are none in the observed data;
+ if first._page_ then do;
+  e1 = 0;
+  e0 = 0;
+  n1 = 0;
+  n0 = 0;
+ end;
+ if upcase(trt) = "ACT" then do;
+  if _type_ = "111" and resp = "Yes" then e1 = n;
+  if _type_ = "110" then n1 = n;
+ end;
+ else if upcase(trt) = "PBO" then do;
+  if _type_ = "111" and resp = "Yes" then e0 = n;
+  if _type_ = "110" then n0 = n;
+ end;
+ if last._page_ then output;
+run;
+
+%SCORECI(DS = DS,
+         CONTRAST = RD,
+         SKEW = FALSE,
+         LEVEL = 0.95,
+         STRATIFY = TRUE,
+         OUTPUT = TRUE,
+         WEIGHT = 1);
+```
+
+*\[Output screenshot to be added\]*
 
 There are occasional numerical differences between the results from the two macros. The PharmaSUG paper supporting the `%mn_cmh` macro claims they are based on "different methodological sources", but the underlying methodology appears to be identical. Discrepancies occur due to rare instances when `%mn_cmh` fails to calculate a stratum's contribution to the z-score. This happens for example when the observed proportions in a stratum are `3/8` and `5/8`. The following code produces a 95% CI of `(-0.324, 0.149)`, but if `x1` and `x2` are transposed the result is `(-0.190, 0.286)`. Hence the `%mn_cmh` macro cannot be relied upon to give consistent results.
 
@@ -70,8 +140,8 @@ The stratified MN CI may be obtained in the SAS Viya platform, but only for the 
 ``` sas
 *** Specifying the stratified Miettinen-Nurminen (score) method in SAS Viya;
 *** Input dataset structured as 1 row per subject (unless using a WEIGHT statement);
-proc freq data = adcibc (where=(trtpn ne 54 and agegr1 ne ">80")); 
-    tables  agegr1 * trtp *  sex / cmh commonriskdiff(CL=MN); 
+proc freq data = adcibc2; 
+    tables  agegr1 * trt * resp / cmh commonriskdiff(CL=MN); 
 run; 
 ```
 
@@ -82,8 +152,8 @@ run;
 As mentioned, Base SAS (up to v9.4) does not produce a stratified MN confidence interval. You may think that a stratified MN confidence interval can be obtained using the following code. However, the `CL=MN` sub-option only implements the MN method for the per-stratum estimates, not the common RD estimate. See [SAS](https://support.sas.com/documentation/cdl/en/procstat/67528/HTML/default/viewer.htm#procstat_freq_details63.htm) for more detail of SAS's calculations.
 
 ``` sas
-proc freq data = xxxx;   
-  tables  var1 * var2 * var3 / cmh riskdiff(common CL=MN) 
+proc freq data = adcibc2;   
+  tables agegr1 * trt * resp / cmh riskdiff(common CL=MN column=2) 
 run;
 ```
 
