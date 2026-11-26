@@ -6,11 +6,11 @@ csl: nature.csl
 
 # Introduction
 
-As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal ('Wald') method, for confidence intervals (CIs) for comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
+As documented [here](https://communities.sas.com/t5/SASware-Ballot-Ideas/Confidence-limits-using-the-Miettinen-Nurminen-stratified-method/idi-p/829317), there is a requirement to use methods other than the simple Approximate Normal ('Wald') method, for confidence intervals (CIs) when comparing proportions from stratified datasets. In certain cases, for example, when you have a baseline imbalance of stratification factors, or when the treatment allocation scheme was stratified, it is important to control for the stratification factors. Stratified analysis may also be employed when combining the results of two pivotal trials for an Integrated Summary of Efficacy (although the validity of such a meta-analysis using only two studies may be questionable).
 
-The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
+The stratified Miettinen-Nurminen 1985 asymptotic score method is of particular interest, because it is often recommended and used by regulatory authorities for clinical trial submissions. It is particularly relevant for non-inferiority trials, where the confidence limits correspond to hypothesis tests with the variance estimated under the (non-zero) null hypothesis. A modification of the stratified score approach is provided by the Skewness-Corrected Asymptotic Score (SCAS) method, for potential improvement in type 1 error rates achieved by such one-sided tests, especially for ratio contrasts or designs with uneven treatment allocation.
 
-Note that Miettinen & Nurminen defined methods for estimating relative risk (RR) and odds ratio (OR), as well as for the risk difference (RD). Note also that there are variations of the Miettinen-Nurminen method, depending on the weights used: the original version as published in the Miettinen-Nurminen 1985 paper uses an iterative weighting scheme. An alternative simpler version using Mantel-Haenszel weighting is often employed instead for RD, having been found to produce similar results in a 2008 ASA paper[@lu2008].
+Note that Miettinen & Nurminen defined methods for estimating relative risk (RR) and odds ratio (OR), as well as for the risk difference (RD). Also note that there are variations of the Miettinen-Nurminen method, depending on the weights used: the original version as published in the 1985 paper uses an iterative weighting scheme. An alternative simpler version using Mantel-Haenszel weighting is often employed instead for RD, having been found to produce similar results in a 2008 ASA paper[@lu2008].
 
 \[(Check & add citation - Tang2020?) - Use of either of these weighting schemes for RD and RR has been shown to be consistent with the efficient score and the CMH test for association. For the same consistency in analysis of stratified OR, it is necessary to use INV weights instead of MH.\]
 
@@ -35,7 +35,7 @@ There are four identified packages on CRAN, plus one code script published outsi
 : \*e.g. Crude inverse variance, sample size, equal, or user-defined custom weights\
 #Klingenberg's implementation of MN weights contains an error in the `MN.weights()` function, because `resMLE.MN()` does not return estimates of p1 and p2, but rather estimates of the numerator and denominator of the score function.
 
-- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci(..., stratified = TRUE)` for stratified RD, RR and OR, with options for MN, MH, INV or user-defined weighting. Also includes optional skewness correction via the `skew = TRUE` argument.
+- [{ratesci}](https://cran.r-project.org/package=ratesci) - `scoreci(..., stratified = TRUE)` for stratified RD, RR and OR, with options for MN, MH, INV or user-defined weighting. Also includes optional skewness correction via the `skew = TRUE` argument. Corresponding 1-sided non-inferiority test against a specified non-zero null hypothesis value.
 - [{cicalc}](https://cran.r-project.org/web/packages/cicalc/index.html) - `ci_prop_diff_mn_strata()` for stratified RD only, MH weighting, also with option `method = "summary score"` for the Summary Score method, and additional functions `ci_prop_diff_mh_strata()` and `ci_rel_risk_cmh_strata()` for the Mantel-Haenszel methods for RD and RR.
 - [{sasLM}](https://cran.r-project.org/web/packages/cicalc/index.html) - `RDmn(), RRmn() and ORmn()` for all stratified contrasts, MN weighting. `RDinv(), RRinv() and ORcmh()` appear to produce approximate normal intervals using inverse variance weighting for RD,RR and CMH weighting for OR.
 - [{metalite.ae}](https://cran.r-project.org/web/packages/cicalc/index.html) - `rate_compare()` for stratified RD only, MH weighting applied with the (non-default) `weight = "cmh"` argument.
@@ -210,4 +210,156 @@ indat2 <- indat |>
 saslm_out <- sasLM::RDmn(indat2)
 saslm_out$Common[3:5]
 
+```
+
+## Non-inferiority tests and other output
+
+`ratesci::scoreci()` and `cicalc::ci_prop_diff_mn_strata()` both offer the facility to output a test statistic and p-value for a one-sided hypothesis test against a specified non-zero null value for the RD contrast. These tests use the z-statistic formulation of the score statistic, rather than the chi-squared version in the Miettinen and Nurminen paper.
+
+```{r}
+
+ratesci_out3 <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "RD",  #risk difference
+    level = 0.95, # 95% CI
+    theta0 = 0.1,
+    skew = FALSE, # disable skewness to get MN method
+    stratified = TRUE, #combine strata
+    weighting = "MH", #MH weights as recommended by Lu 2008
+  )
+
+ratesci_out3$pval
+
+cicalc_out2 <- cicalc::ci_prop_diff_mn_strata(
+  x = respn, 
+  by = trtn, 
+  strata = agegrp, 
+  delta = 0.1,
+  data = adcibc
+  )
+
+cicalc_out2
+
+
+```
+
+# Relative Risk
+
+In some settings, it may be more clinically relevant to quantify the treatment effect as a relative risk instead of a difference. Only {ratesci} and {sasLM} provide functions for such analysis. Miettinen and Nurminen applied the same methodology to the estimation of the RR contrast parameter, and Laud proposed the corresponding skewness corrected SCAS method. In the single-stratum case, the skewness correction is found to make substantial improvements to the type 1 error rates for one-sided testing. Example code for producing the Miettinen-Nurminen and SCAS CIs for stratified RD, with either MN or MH weights, is shown below.
+
+```{r}
+ratesci_out3 <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "RR",  #relative risk
+    level = 0.95, # 95% CI
+    skew = FALSE, # disable skewness to get MN method
+    stratified = TRUE, #combine strata
+    weighting = "MN", #MN iterative weights
+  )
+
+ratesci_out3$estimates[, 1:3]
+
+saslm_out <- sasLM::RRmn(indat2)
+saslm_out$Common[3:5]
+
+ratesci_out4 <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "RR",  #relative risk
+    level = 0.95, # 95% CI
+    skew = TRUE, # include skewness correction
+    stratified = TRUE, #combine strata
+    weighting = "MN", #MN iterative weights
+  )
+
+ratesci_out4$estimates[, 1:3]
+
+
+```
+
+# Odds Ratio
+
+Perhaps more rarely required, a stratified CI may also be produced for an odds ratio contrast. The only R package available for the stratified MN interval in this case is {ratesci}. Here, the SCAS method incorporates two separate corrections to the MN formula: one for a skewness correction, and another correction for bias, as described in Laud2018. 
+
+It is important to note that for OR, the use of simplified MH weights does not give equivalent results that would match with the CMH test for association. Instead, either MN or INV weighting is recommended.
+
+```{r}
+ratesci_out5 <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "OR",  #odds ratio
+    level = 0.95, # 95% CI
+    skew = FALSE, # disable skewness to get MN method
+    orbias = FALSE, # disable additional OR bias correction to get MN method
+    stratified = TRUE, #combine strata
+    weighting = "MN", #MN weights
+    warn = FALSE
+  )
+
+ratesci_out5$estimates[, 1:3]
+
+ratesci_out5mh <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "OR",  #odds ratio
+    level = 0.95, # 95% CI
+    skew = FALSE, # disable skewness to get MN method
+    orbias = FALSE, # disable additional OR bias correction to get MN method
+    stratified = TRUE, #combine strata
+    weighting = "MH", #MH weights
+    warn = FALSE
+  )
+
+ratesci_out5mh$estimates[, 1:3]
+
+ratesci_out5iv <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "OR",  #odds ratio
+    level = 0.95, # 95% CI
+    skew = FALSE, # disable skewness to get MN method
+    orbias = FALSE, # disable additional OR bias correction to get MN method
+    stratified = TRUE, #combine strata
+    weighting = "INV", #MN weights
+    warn = FALSE
+  )
+
+ratesci_out5iv$estimates[, 1:3]
+
+ratesci_out6 <- ratesci::scoreci(
+    x1 = indat$x1,  #n events in trt 1 (Active)
+    n1 = indat$n1,  #n subjects in trt 1 (Active)
+    x2 = indat$x2,  #n events in trt 2 (comparator/placebo)
+    n2 = indat$n2,  #n subjects in trt2 (comparator/placebo)
+    distrib = "bin",  #binomial distribution
+    contrast = "OR",  #odds ratio
+    level = 0.95, # 95% CI
+    skew = TRUE, # include skewness correction
+    orbias = TRUE, # include OR bias correction
+    stratified = TRUE, #combine strata
+    weighting = "MN", #MN weights
+    warn = FALSE
+  )
+
+ratesci_out6$estimates[, 1:3]
 ```
